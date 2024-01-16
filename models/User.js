@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+const bcrypt = require("bcrypt")
 const UserSchema = new mongoose.Schema({
     FirstName : {
         type: String,
@@ -63,9 +63,21 @@ const UserSchema = new mongoose.Schema({
 
 //MiddleWare
 
-    UserSchema.pre("save", function(){
+    UserSchema.pre("save",async function(){
+        //Name Formatting
         this.FirstName = this.FirstName.charAt(0).toUpperCase() + (this.FirstName.length > 1?this.FirstName.substr(1).toLowerCase() : "")
         this.LastName = this.LastName.charAt(0).toUpperCase() + (this.LastName.length > 1?this.LastName.substr(1).toLowerCase() : "")
+        
+        //Password Hashing
+        this.Password = await bcrypt.hash(this.Password, 5)
+
+        //Continue
+
     })
+
+//Schema Methods
+    UserSchema.methods.VerifyPassword = function(Password){
+        return bcrypt.compare(Password, this.Password)
+    }
 
 module.exports = UserSchema

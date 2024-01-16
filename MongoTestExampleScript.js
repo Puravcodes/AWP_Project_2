@@ -13,17 +13,27 @@ try {
 //console.log(User)
 run()
 async function run(){
+    //User Details
     var user1 = new User({
-        FirstName : "elroy",
-        LastName: "crasto",
-        Email : "elroy@gmail.com",
-        Password : "Elroy123",
-        PhoneNumber : "8855827543",
+        FirstName : "Test",
+        LastName: "User",
+        Email : "TestUser@Testing.com",
+        Password : "TestPass",
+        PhoneNumber : "0123456789",
     })
+
+    //Saving to Database
     try{
         await user1.save()
     }catch (e){
         console.log(e.message)
     }
-    console.log(user1.Username)
+
+    //Displaying User & Password Verification
+    console.log(user1)
+    console.log(await user1.VerifyPassword("0123456789"))
+    
+    //Exit
+    process.exit()
 }
+
