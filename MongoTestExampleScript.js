@@ -5,7 +5,7 @@ const User = mongoose.model("User", UserSchema);
 
 //Database Connection CallBack Function
 mongoose.connection.on("connected", () => {
-  console.log("AWP Databse Connected: True");
+  console.log("AWP Databse Connected");
 });
 
 //Establishing Database Connection
@@ -33,11 +33,12 @@ async function run() {
     await user1.save();
   } catch (e) {
     console.log(e.message);
+    process.exit()
   }
 
   //Displaying User & Password Verification
   console.log(user1);
-  console.log(await user1.VerifyPassword("0123456789"));
+  console.log(await user1.VerifyPassword("TestPass"));
 
   //Exit
   process.exit();
