@@ -5,7 +5,6 @@ var morgan = require('morgan');
 var mongoose = require('mongoose');
 var router = express.Router();
 var path = require('path');
-const absolutePath = path.resolve(__dirname); 
 
 
 app.use(morgan('dev')); // logs request in terminal
@@ -14,18 +13,12 @@ app.use(express.urlencoded({ extended: true })); // decodes json data to text
 app.use(express.static(path.join(__dirname + '/website/templates')));
 
 //loading each folder from assets folder
-app.use('/assets', express.static(path.join(absolutePath, 'assets')));
-
-//app.use('/assets/css', express.static(path.join(absolutePath, '/css')));
-//app.use('/assets/img', express.static(path.join(absolutePath, '/img')));
-//app.use('/assets/js', express.static(path.join(absolutePath, '/js')));
-//app.use('/assets/scss', express.static(path.join(absolutePath, '/scss')));
-//app.use('/assets/vendor', express.static(path.join(absolutePath, '/vendor')));
+app.use('/assets', express.static(path.join(__dirname, '/assets')));
 
 
 async function connectToDatabase(){
     try{
-      await mongoose.connect('mongodb://localhost:27017/test',{
+      await mongoose.connect('mongodb://localhost:27017/AWP',{
         useNewUrlParser: true,
         useUnifiedTopology: true
     });
