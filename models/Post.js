@@ -1,7 +1,9 @@
+//Imports
 const mongoose = require("mongoose");
 const UserSchema = require("./User");
 const User = mongoose.model("User",UserSchema)
 
+//Schema
 const PostSchema = mongoose.Schema({
     Model : {
         type: String,
@@ -27,6 +29,11 @@ const PostSchema = mongoose.Schema({
         immutable: true,
         default: ()=>Date.now()
     },
+    OwnerID : {
+        type: mongoose.SchemaTypes.ObjectId,
+        ref: "User",
+        required: true
+    },
     IsRented : {
         type: Boolean,
         required: true,
@@ -34,7 +41,8 @@ const PostSchema = mongoose.Schema({
     },
     CurrentRenter : {
         type: mongoose.SchemaTypes.ObjectId,
-        ref: User
+        ref: "User",
+        required: false
     },
     Location : {
         type: String,
@@ -42,3 +50,7 @@ const PostSchema = mongoose.Schema({
         min: 100000 
     }
 })
+
+
+//Export
+module.export = PostSchema

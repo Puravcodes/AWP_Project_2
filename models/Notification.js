@@ -35,4 +35,4 @@ const NotificationSchema = mongoose.Schema({
 })
 
 //Exports
-module.exports = NotificationSchema
+module.export = NotificationSchema
