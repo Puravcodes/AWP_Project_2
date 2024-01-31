@@ -14,9 +14,41 @@ var Notification = mongoose.model("Notification",NotificationSchema);
 var CookieParser = require("cookie-parser");
 const { Console } = require('console');
 
-app.use(morgan('dev')); // logs request in terminal
+//Importing UserSchema Model
+const { error } = require('console');
+mongoose.connection.on("connected", () => {
+  console.log("AWP Databse Connected");
+});
+
+//Express Session
+const session = require('express-session');
+
+//Express Flash
+const flash = require('express-flash');
+
+//Session
+app.use(session({
+  secret : "secret key",
+  resave: false,
+  saveUninitialized: true,
+  cookie : {
+    maxAge : 60000
+  }
+}));
+app.use(flash());
+
+//bodyParse
+const bodyParser = require('body-parser')
+app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.json());
+
+//View Engine
+app.set('view engine','ejs');
+
+// logs request in terminal
+app.use(morgan('dev')); 
 app.use(express.json()); 
-app.use(express.urlencoded({ extended: true })); // decodes json data to text 
+app.use(express.urlencoded({ extended: false })); // decodes json data to text 
 app.use(express.static(path.join(__dirname + '/website/templates')));
 app.use(CookieParser());
 //loading each folder from assets folder
@@ -41,11 +73,60 @@ app.get('/', function(req,res){
 });
 
 app.get('/login', function(req,res){
-  res.sendFile(path.join(__dirname+'/website/templates/'));
+  res.render(path.join(__dirname+'/website/templates/loginPage.ejs'),{ messages: req.flash() });
 });
 
+app.post('/login', async (req,res) => {
+try { 
+const { email, password } = req.body;
+const user = await User.findOne({ Email : email });
+if(!user){
+  throw new Error("Email Does Not Exists")
+}
+if(await user.VerifyPassword(password)) {
+  if(res.status(201)){
+    res.send('Logged In');
+  }else{
+    throw new Error("WRONG Password");
+  }
+}
+else{
+  throw new Error("Incorrect Password");
+}
+}
+catch(error){
+req.flash("error" , error.message)
+return res.redirect('login');
+} 
+
+})
+
 app.get('/signup',function(req,res){
-  res.sendFile(path.join(__dirname+'/website/templates/'));
+  res.render(path.join(__dirname+'/website/templates/signupPage.ejs'),{ messages: req.flash() });
+});
+
+app.post('/signup', async (req,res) => {
+  try{
+    const { firstname, lastname, email, password, phoneNumber } = req.body;
+    const data = new User ({
+    FirstName: firstname,
+    LastName: lastname,
+    Email: email,
+    Password: password,
+    PhoneNumber: phoneNumber,
+  });
+  await data.save();
+  res.redirect('login');
+}catch(error){
+  console.error('Error creating post:', error);
+  if(res.status(500)){
+    if(error.code == 11000){
+      req.flash("error" , "Account Already Registered with the Given Email"); 
+    }
+    return res.redirect('signup');
+  }
+  
+}
 });
 
 app.get('/profile',function(req,res){
