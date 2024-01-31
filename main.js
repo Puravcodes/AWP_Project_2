@@ -55,35 +55,43 @@ app.get('/profile',function(req,res){
 app.post('/api/rent-request/:PID',async function(req,res){
 
   var PostId = req.params.PID
-  CurrentUser = await User.find({Cookie: req.cookies.auth})
+  Users = await User.find({Cookie: req.cookies.auth})
   console.log()
   console.log(PostId);
-  if (req.cookies.auth == undefined){
+  if (req.cookies.auth == undefined || Users == []){
     res.send({"Status":1,"Msg":"Invalid Cookie"})
   }else {
     try{
+      CurrentUser = Users[0]
       CurrentPost = await Post.findById(PostId);
     }catch(e){
-      console.log(e);
+      //console.log(e);
       res.send({"Status":1,"Msg":"Invalid PostID"})
+      return 
     }
 
-    //console.log(CurrentPost);
-  //console.log(CurrentUser)
-  /*
-  var notification1 = new Notification({
-    Title : "Request To Rent " + CurrentPost.Model,
-    Description : " A User Wants To Rent Your Cycle.",
-    Status : true,
-    ApprovalNeeded : true,
-    Users : {
-      Leaser : CurrentPost.OwnerID,
-      Renter : CurrentUser.id
-    }
-  })
-  */
+    console.log(CurrentPost);
+    console.log(CurrentUser)
   
-  res.send({"Status":0,"Msg":"Request Successfull"});
+    var notification1 = new Notification({
+      Title : "Request To Rent " + CurrentPost.Model,
+      Description : " A User Wants To Rent Your Cycle.",
+      Status : true,
+      ApprovalNeeded : true,
+      Users : {
+        Leaser : CurrentPost.OwnerID,
+        Renter : CurrentUser.id
+      }
+    })
+    try{
+      await notification1.save();
+    }catch(e){
+      console.log(e);
+      res.send({"Status":1,"Msg":"Error Occured While Processing"})
+      return ;
+    }
+  
+    res.send({"Status":0,"Msg":"Request Successfull"});
   }
 
   

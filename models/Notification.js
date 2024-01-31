@@ -18,7 +18,7 @@ const NotificationSchema = mongoose.Schema({
     Approved : {
         type: String,
         required: false,
-        default: this.ApprovalNeeded === true ? "Pending": "Null"
+        default: "Pending"
     },
     Users : {
         Leaser : {
@@ -35,4 +35,4 @@ const NotificationSchema = mongoose.Schema({
 })
 
 //Exports
-module.export = NotificationSchema
+module.exports = NotificationSchema;

@@ -1,7 +1,7 @@
 //Imports
 const mongoose = require("mongoose");
 const UserSchema = require("./User");
-const User = mongoose.model("User",UserSchema)
+const User = mongoose.model("User",UserSchema);
 
 //Schema
 const PostSchema = mongoose.Schema({
@@ -25,7 +25,7 @@ const PostSchema = mongoose.Schema({
     },
     PostedAt : {
         type: Date,
-        requried: true,
+        required: true,
         immutable: true,
         default: ()=>Date.now()
     },
@@ -53,4 +53,4 @@ const PostSchema = mongoose.Schema({
 
 
 //Export
-module.export = PostSchema
+module.exports = PostSchema;
