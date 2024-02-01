@@ -13,6 +13,7 @@ var NotificationSchema = require("./models/Notification");
 var Notification = mongoose.model("Notification",NotificationSchema);
 var CookieParser = require("cookie-parser");
 const { Console } = require('console');
+var jwt = require('jsonwebtoken');
 
 //Importing UserSchema Model
 const { error } = require('console');
@@ -76,7 +77,7 @@ app.get('/login', function(req,res){
   res.render(path.join(__dirname+'/website/templates/loginPage.ejs'),{ messages: req.flash() });
 });
 
-app.post('/login', async (req,res) => {
+app.post('/login', async (req,res,next) => {
 try { 
 const { email, password } = req.body;
 const user = await User.findOne({ Email : email });
@@ -85,7 +86,24 @@ if(!user){
 }
 if(await user.VerifyPassword(password)) {
   if(res.status(201)){
+    var myquery = { Email : email};
+    function genRandonString(length) {
+      var chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()';
+      var charLength = chars.length;
+      var result = '';
+      for ( var i = 0; i < length; i++ ) {
+         result += chars.charAt(Math.floor(Math.random() * charLength));
+      }
+      return result;
+   }
+    app.locals.ck = genRandonString(10);
+    console.log(app.locals.ck);
+   res.cookie('auth' , app.locals.ck, {
+    httpOnly : true,
+  }); 
+   await User.updateOne(myquery, {Cookie : app.locals.ck});
     res.send('Logged In');
+    next();
   }else{
     throw new Error("WRONG Password");
   }
@@ -98,8 +116,17 @@ catch(error){
 req.flash("error" , error.message)
 return res.redirect('login');
 } 
+});
 
-})
+app.get('/logout',async (req,res) => {
+  try {
+  await User.findOneAndUpdate({Cookie : app.locals.ck},{Cookie : null});
+  await res.clearCookie('auth');
+  await res.send('<h1>Logged Out</h1>');
+}catch(error){
+  res.send(error.message);
+  }
+});
 
 app.get('/signup',function(req,res){
   res.render(path.join(__dirname+'/website/templates/signupPage.ejs'),{ messages: req.flash() });
