@@ -629,14 +629,6 @@ h6 {
   background-color: #aab7cf;
 }
 
-@media (min-width: 1200px) {
-
-  #main,
-  #footer {
-    margin-left: 300px;
-  }
-}
-
 @media (max-width: 1199px) {
   .toggle-sidebar .sidebar {
     left: 0;

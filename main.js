@@ -5,6 +5,9 @@ var morgan = require('morgan');
 var mongoose = require('mongoose');
 var router = express.Router();
 var path = require('path');
+
+const multer = require('multer');
+
 var UserSchema = require("./models/User");
 var User = mongoose.model("User",UserSchema);
 var PostSchema = require("./models/Post")
@@ -54,6 +57,17 @@ app.use(express.static(path.join(__dirname + '/website/templates')));
 app.use(CookieParser());
 //loading each folder from assets folder
 app.use('/assets', express.static(path.join(__dirname, '/assets')));
+
+
+const storage = multer.diskStorage({
+  destination: './assets/img',
+  filename: (req, file, cb) => {
+    cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
+  },
+});
+
+const upload = multer({ storage });
+
 
 
 async function connectToDatabase(){
@@ -160,6 +174,36 @@ app.get('/profile',function(req,res){
   res.sendFile(path.join(__dirname+'/website/templates/profilePage.html'));
 });
 
+app.get('/create-post', (req, res) => {
+  res.sendFile(path.join(__dirname, './website/templates', 'createPost.html'));
+});
+
+app.post('/create-post', upload.single('image'), async (req, res) => {
+  try {
+    
+    const { Model, Condition, Price, Description, Location } = req.body;
+    const Img = req.file ? `/images/${req.file.filename}` : null;
+
+    
+    const newPost = new Post({
+      Model,
+      Img,
+      Condition,
+      Price,
+      Description,
+      Location,
+    });
+
+    
+    await newPost.save();
+
+    res.send('Post created successfully!');
+  } catch (error) {
+    console.error('Error creating post:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
 app.post('/api/rent-request/:PID',async function(req,res){
 
   var PostId = req.params.PID
@@ -204,6 +248,7 @@ app.post('/api/rent-request/:PID',async function(req,res){
 
   
 })
+
 
 app.listen(port, function(){
     console.log('Running server on port '+port);
