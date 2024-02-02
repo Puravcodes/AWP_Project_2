@@ -5,15 +5,17 @@ var morgan = require('morgan');
 var mongoose = require('mongoose');
 var router = express.Router();
 var path = require('path');
-
 const multer = require('multer');
 
+//importing database schemas
 var UserSchema = require("./models/User");
 var User = mongoose.model("User",UserSchema);
 var PostSchema = require("./models/Post")
 var Post = mongoose.model("Post",PostSchema);
 var NotificationSchema = require("./models/Notification");
 var Notification = mongoose.model("Notification",NotificationSchema);
+
+//cookie parser
 var CookieParser = require("cookie-parser");
 const { Console } = require('console');
 var jwt = require('jsonwebtoken');
@@ -55,6 +57,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false })); // decodes json data to text 
 app.use(express.static(path.join(__dirname + '/website/templates')));
 app.use(CookieParser());
+
 //loading each folder from assets folder
 app.use('/assets', express.static(path.join(__dirname, '/assets')));
 
@@ -82,6 +85,18 @@ async function connectToDatabase(){
 };
 connectToDatabase();
 
+//Random string generator function
+function genRandomString(length) {
+  var chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()';
+  var charLength = chars.length;
+  var result = '';
+  for ( var i = 0; i < length; i++ ) {
+     result += chars.charAt(Math.floor(Math.random() * charLength));
+  }
+  return result;
+}
+
+//Routes
 app.get('/', function(req,res){
   res.sendFile(path.join(__dirname + '/website/templates/index.html'));
 });
@@ -91,31 +106,22 @@ app.get('/login', function(req,res){
 });
 
 app.post('/login', async (req,res,next) => {
-try { 
+try {
 const { email, password } = req.body;
 const user = await User.findOne({ Email : email });
 if(!user){
-  throw new Error("Email Does Not Exists")
+  throw new Error("Email Does Not Exists");
 }
 if(await user.VerifyPassword(password)) {
   if(res.status(201)){
     var myquery = { Email : email};
-    function genRandonString(length) {
-      var chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()';
-      var charLength = chars.length;
-      var result = '';
-      for ( var i = 0; i < length; i++ ) {
-         result += chars.charAt(Math.floor(Math.random() * charLength));
-      }
-      return result;
-   }
-    app.locals.ck = genRandonString(10);
+    app.locals.ck = genRandomString(10);
     console.log(app.locals.ck);
    res.cookie('auth' , app.locals.ck, {
     httpOnly : true,
   }); 
    await User.updateOne(myquery, {Cookie : app.locals.ck});
-    res.send('Logged In');
+    res.redirect('/');
     next();
   }else{
     throw new Error("WRONG Password");
@@ -135,7 +141,7 @@ app.get('/logout',async (req,res) => {
   try {
   await User.findOneAndUpdate({Cookie : app.locals.ck},{Cookie : null});
   await res.clearCookie('auth');
-  await res.send('<h1>Logged Out</h1>');
+  await res.redirect('/login');
 }catch(error){
   res.send(error.message);
   }
@@ -156,21 +162,43 @@ app.post('/signup', async (req,res) => {
     PhoneNumber: phoneNumber,
   });
   await data.save();
-  res.redirect('login');
+  res.redirect('/login');
 }catch(error){
   console.error('Error creating post:', error);
   if(res.status(500)){
     if(error.code == 11000){
       req.flash("error" , "Account Already Registered with the Given Email"); 
     }
-    return res.redirect('signup');
+    return res.redirect('/signup');
   }
   
 }
 });
 
-app.get('/profile',function(req,res){
-  res.sendFile(path.join(__dirname+'/website/templates/profilePage.html'));
+app.get('/profile', async function (req,res){
+  try{
+      const requser = await User.findOne({Cookie : req.cookies.auth});
+      req.user=requser;
+      var user = ({
+        Username : requser.Username,
+        Email : requser.Email,
+        Password: requser.Password,
+        JoinedAt: requser.JoinedAt,
+        Posts: requser.Posts,
+        PhoneNumber : requser.PhoneNumber,
+        ProfileImg: requser.ProfileImg,
+      })
+      if (requser){
+        console.log(user);
+        res.render(path.join(__dirname,'./website/templates/profilePage.ejs'),{user:user});
+      }else{
+        return res.send('Unauthorized!');
+      }
+      
+    }catch(error){
+    console.log(error);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
 
