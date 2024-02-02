@@ -58,7 +58,6 @@ app.use(CookieParser());
 //loading each folder from assets folder
 app.use('/assets', express.static(path.join(__dirname, '/assets')));
 
-
 const storage = multer.diskStorage({
   destination: './assets/img',
   filename: (req, file, cb) => {
@@ -174,35 +173,6 @@ app.get('/profile',function(req,res){
   res.sendFile(path.join(__dirname+'/website/templates/profilePage.html'));
 });
 
-app.get('/create-post', (req, res) => {
-  res.sendFile(path.join(__dirname, './website/templates', 'createPost.html'));
-});
-
-app.post('/create-post', upload.single('image'), async (req, res) => {
-  try {
-    
-    const { Model, Condition, Price, Description, Location } = req.body;
-    const Img = req.file ? `/images/${req.file.filename}` : null;
-
-    
-    const newPost = new Post({
-      Model,
-      Img,
-      Condition,
-      Price,
-      Description,
-      Location,
-    });
-
-    
-    await newPost.save();
-
-    res.send('Post created successfully!');
-  } catch (error) {
-    console.error('Error creating post:', error);
-    res.status(500).send('Internal Server Error');
-  }
-});
 
 app.post('/api/rent-request/:PID',async function(req,res){
 
@@ -249,6 +219,89 @@ app.post('/api/rent-request/:PID',async function(req,res){
   
 })
 
+
+
+app.post('/api/rent-request/:PID',async function(req,res){
+
+  var PostId = req.params.PID
+  Users = await User.find({Cookie: req.cookies.auth})
+  console.log()
+  console.log(PostId);
+  if (req.cookies.auth == undefined || Users == []){
+    res.send({"Status":1,"Msg":"Invalid Cookie"})
+  }else {
+    try{
+      CurrentUser = Users[0]
+      CurrentPost = await Post.findById(PostId);
+    }catch(e){
+      //console.log(e);
+      res.send({"Status":1,"Msg":"Invalid PostID"})
+      return 
+    }
+
+    console.log(CurrentPost);
+    console.log(CurrentUser)
+  
+    var notification1 = new Notification({
+      Title : "Request To Rent " + CurrentPost.Model,
+      Description : " A User Wants To Rent Your Cycle.",
+      Status : true,
+      ApprovalNeeded : true,
+      Users : {
+        Leaser : CurrentPost.OwnerID,
+        Renter : CurrentUser.id
+      }
+    })
+    try{
+      await notification1.save();
+    }catch(e){
+      console.log(e);
+      res.send({"Status":1,"Msg":"Error Occured While Processing"})
+      return ;
+    }
+  
+    res.send({"Status":0,"Msg":"Request Successfull"});
+  }
+
+  
+})
+
+app.get('/create-post', (req, res) => {
+  res.sendFile(path.join(__dirname, './website/templates', 'createPost.html'));
+});
+
+app.post('/create-post', upload.single('image'), async (req, res) => {
+  try {
+    const Users = await User.find({ Cookie: req.cookies.auth });
+    if (req.cookies.auth === undefined || Users == []) {
+      res.send("Internal Server Error");
+      return 
+    }
+    CurrentUser = Users[0];
+    var OwnerID = CurrentUser.id;
+    const { Model, Condition, Price, Description, Location } = req.body;
+    const Img = req.file ? `/images/${req.file.filename}` : null;
+
+    
+    const newPost = new Post({
+      Model,
+      Img,
+      Condition,
+      Price,
+      Description,
+      OwnerID,
+      Location,
+    });
+
+    
+    await newPost.save();
+
+    res.send('Post created successfully!');
+  } catch (error) {
+    console.error('Error creating post:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
 
 app.listen(port, function(){
     console.log('Running server on port '+port);
