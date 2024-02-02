@@ -26,7 +26,6 @@ const PostSchema = mongoose.Schema({
     PostedAt : {
         type: Date,
         required: true,
-        required: true,
         immutable: true,
         default: ()=>Date.now()
     },
