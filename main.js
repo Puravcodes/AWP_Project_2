@@ -5,15 +5,17 @@ var morgan = require('morgan');
 var mongoose = require('mongoose');
 var router = express.Router();
 var path = require('path');
-
 const multer = require('multer');
 
+//importing database schemas
 var UserSchema = require("./models/User");
 var User = mongoose.model("User",UserSchema);
 var PostSchema = require("./models/Post")
 var Post = mongoose.model("Post",PostSchema);
 var NotificationSchema = require("./models/Notification");
 var Notification = mongoose.model("Notification",NotificationSchema);
+
+//cookie parser
 var CookieParser = require("cookie-parser");
 const { Console } = require('console');
 var jwt = require('jsonwebtoken');
@@ -55,6 +57,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false })); // decodes json data to text 
 app.use(express.static(path.join(__dirname + '/website/templates')));
 app.use(CookieParser());
+
 //loading each folder from assets folder
 app.use('/assets', express.static(path.join(__dirname, '/assets')));
 
@@ -82,6 +85,18 @@ async function connectToDatabase(){
 };
 connectToDatabase();
 
+//Random string generator function
+function genRandomString(length) {
+  var chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()';
+  var charLength = chars.length;
+  var result = '';
+  for ( var i = 0; i < length; i++ ) {
+     result += chars.charAt(Math.floor(Math.random() * charLength));
+  }
+  return result;
+}
+
+//Routes
 app.get('/', function(req,res){
   res.sendFile(path.join(__dirname + '/website/templates/index.html'));
 });
@@ -91,11 +106,11 @@ app.get('/login', function(req,res){
 });
 
 app.post('/login', async (req,res,next) => {
-try { 
+try {
 const { email, password } = req.body;
 const user = await User.findOne({ Email : email });
 if(!user){
-  throw new Error("Email Does Not Exists")
+  throw new Error("Email Does Not Exists");
 }
 if(await user.VerifyPassword(password)) {
   if(res.status(201)){
@@ -113,7 +128,7 @@ if(await user.VerifyPassword(password)) {
    res.cookie('auth' , ck, {
     httpOnly : true,
   }); 
-   await User.updateOne(myquery, {Cookie :ck});
+   await User.updateOne(myquery, {Cookie : app.locals.ck});
     res.send('Logged In');
     next();
   }else{
@@ -134,7 +149,7 @@ app.get('/logout',async (req,res) => {
   try {
   await User.findOneAndUpdate({Cookie : req.cookies.auth},{Cookie : null});
   await res.clearCookie('auth');
-  await res.send('<h1>Logged Out</h1>');
+  await res.redirect('/login');
 }catch(error){
   res.send(error.message);
   }
@@ -155,69 +170,44 @@ app.post('/signup', async (req,res) => {
     PhoneNumber: phoneNumber,
   });
   await data.save();
-  res.redirect('login');
+  res.redirect('/login');
 }catch(error){
   console.error('Error creating post:', error);
   if(res.status(500)){
     if(error.code == 11000){
       req.flash("error" , "Account Already Registered with the Given Email"); 
     }
-    return res.redirect('signup');
+    return res.redirect('/signup');
   }
   
 }
 });
 
-app.get('/profile',function(req,res){
-  res.sendFile(path.join(__dirname+'/website/templates/profilePage.html'));
-});
-
-
-app.post('/api/rent-request/:PID',async function(req,res){
-
-  var PostId = req.params.PID
-  Users = await User.find({Cookie: req.cookies.auth})
-  console.log()
-  console.log(PostId);
-  if (req.cookies.auth == undefined || Users == []){
-    res.send({"Status":1,"Msg":"Invalid Cookie"})
-  }else {
-    try{
-      CurrentUser = Users[0]
-      CurrentPost = await Post.findById(PostId);
-    }catch(e){
-      //console.log(e);
-      res.send({"Status":1,"Msg":"Invalid PostID"})
-      return 
-    }
-
-    console.log(CurrentPost);
-    console.log(CurrentUser)
-  
-    var notification1 = new Notification({
-      Title : "Request To Rent " + CurrentPost.Model,
-      Description : " A User Wants To Rent Your Cycle.",
-      Status : true,
-      ApprovalNeeded : true,
-      Users : {
-        Leaser : CurrentPost.OwnerID,
-        Renter : CurrentUser.id
+app.get('/profile', async function (req,res){
+  try{
+      const requser = await User.findOne({Cookie : req.cookies.auth});
+      req.user=requser;
+      var user = ({
+        Username : requser.Username,
+        Email : requser.Email,
+        Password: requser.Password,
+        JoinedAt: requser.JoinedAt,
+        Posts: requser.Posts,
+        PhoneNumber : requser.PhoneNumber,
+        ProfileImg: requser.ProfileImg,
+      })
+      if (requser){
+        console.log(user);
+        res.render(path.join(__dirname,'./website/templates/profilePage.ejs'),{user:user});
+      }else{
+        return res.send('Unauthorized!');
       }
-    })
-    try{
-      await notification1.save();
-    }catch(e){
-      console.log(e);
-      res.send({"Status":1,"Msg":"Error Occured While Processing"})
-      return ;
-    }
-  
-    res.send({"Status":0,"Msg":"Request Successfull"});
+      
+    }catch(error){
+    console.log(error);
+    res.status(500).send('Internal Server Error');
   }
-
-  
-})
-
+});
 
 
 app.post('/api/rent-request/:PID',async function(req,res){
