@@ -273,7 +273,7 @@ app.post('/create-post', upload.single('image'), async (req, res) => {
     CurrentUser = Users[0];
     var OwnerID = CurrentUser.id;
     const { Model, Condition, Price, Description, Location } = req.body;
-    const Img = req.file ? `/images/${req.file.filename}` : null;
+    const Img = req.file ? `${req.file.filename}` : null;
 
     
     const newPost = new Post({
@@ -288,6 +288,8 @@ app.post('/create-post', upload.single('image'), async (req, res) => {
 
     
     await newPost.save();
+    var PostId = newPost.id; 
+    await User.findOneAndUpdate({Cookie: req.cookies.auth}, {$push:{Posts: PostId}});
 
     res.send('Post created successfully!');
   } catch (error) {
