@@ -109,12 +109,11 @@ if(await user.VerifyPassword(password)) {
       }
       return result;
    }
-    app.locals.ck = genRandonString(10);
-    console.log(app.locals.ck);
-   res.cookie('auth' , app.locals.ck, {
+    var ck = genRandonString(10);
+   res.cookie('auth' , ck, {
     httpOnly : true,
   }); 
-   await User.updateOne(myquery, {Cookie : app.locals.ck});
+   await User.updateOne(myquery, {Cookie :ck});
     res.send('Logged In');
     next();
   }else{
@@ -133,7 +132,7 @@ return res.redirect('login');
 
 app.get('/logout',async (req,res) => {
   try {
-  await User.findOneAndUpdate({Cookie : app.locals.ck},{Cookie : null});
+  await User.findOneAndUpdate({Cookie : req.cookies.auth},{Cookie : null});
   await res.clearCookie('auth');
   await res.send('<h1>Logged Out</h1>');
 }catch(error){
