@@ -85,17 +85,6 @@ async function connectToDatabase(){
 };
 connectToDatabase();
 
-//Random string generator function
-function genRandomString(length) {
-  var chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()';
-  var charLength = chars.length;
-  var result = '';
-  for ( var i = 0; i < length; i++ ) {
-     result += chars.charAt(Math.floor(Math.random() * charLength));
-  }
-  return result;
-}
-
 //Routes
 app.get('/', function(req,res){
   res.sendFile(path.join(__dirname + '/website/templates/index.html'));
@@ -116,7 +105,7 @@ if(await user.VerifyPassword(password)) {
   if(res.status(201)){
     var myquery = { Email : email};
     function genRandonString(length) {
-      var chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()';
+      var chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
       var charLength = chars.length;
       var result = '';
       for ( var i = 0; i < length; i++ ) {
