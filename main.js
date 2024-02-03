@@ -117,8 +117,8 @@ if(await user.VerifyPassword(password)) {
    res.cookie('auth' , ck, {
     httpOnly : true,
   }); 
-   await User.updateOne(myquery, {Cookie : app.locals.ck});
-    res.send('Logged In');
+   await User.updateOne(myquery, {Cookie : ck});
+    res.redirect('/');
     next();
   }else{
     throw new Error("WRONG Password");
@@ -130,7 +130,7 @@ else{
 }
 catch(error){
 req.flash("error" , error.message)
-return res.redirect('login');
+return res.redirect('/login');
 } 
 });
 
@@ -174,29 +174,28 @@ app.post('/signup', async (req,res) => {
 
 app.get('/profile', async function (req,res){
   try{
-      const requser = await User.findOne({Cookie : req.cookies.auth});
-      req.user=requser;
-      var user = ({
-        Username : requser.Username,
-        Email : requser.Email,
-        Password: requser.Password,
-        JoinedAt: requser.JoinedAt,
-        Posts: requser.Posts,
-        PhoneNumber : requser.PhoneNumber,
-        ProfileImg: requser.ProfileImg,
-      })
-      if (requser){
-        console.log(user);
-        res.render(path.join(__dirname,'./website/templates/profilePage.ejs'),{user:user});
-      }else{
-        return res.send('Unauthorized!');
-      }
-      
+    if (req.cookies.auth==null||req.cookies.auth==undefined){
+      res.redirect('/login');
+      return;
+    }
+    var requser = await User.find({Cookie : req.cookies.auth});
+    var currentuser =requser[0];
+    var user = ({
+      Username: currentuser.Username,
+      Email: currentuser.Email,
+      Password: currentuser.Password,
+      JoinedAt: currentuser.JoinedAt,
+      Posts: currentuser.Posts,
+      PhoneNumber : currentuser.PhoneNumber,
+      ProfileImg: currentuser.ProfileImg,
+    })
+      res.render(path.join(__dirname,'./website/templates/profilePage.ejs'),{user:user});
     }catch(error){
     console.log(error);
     res.status(500).send('Internal Server Error');
   }
 });
+
 
 
 app.post('/api/rent-request/:PID',async function(req,res){
@@ -244,17 +243,33 @@ app.post('/api/rent-request/:PID',async function(req,res){
   
 })
 
-app.get('/create-post', (req, res) => {
-  res.sendFile(path.join(__dirname, './website/templates', 'createPost.html'));
+app.get('/create-post', async (req, res) => {
+  try{
+    if (req.cookies.auth==null||req.cookies.auth==undefined){
+      res.redirect('/login');
+      return;
+    }
+    var requser = await User.find({Cookie : req.cookies.auth});
+    var currentuser =requser[0];
+    var user = ({
+      Username: currentuser.Username,
+      ProfileImg: currentuser.ProfileImg,
+    })
+      res.render(path.join(__dirname,'./website/templates/createPost.ejs'),{user:user});
+    }catch(error){
+    console.log(error);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
 app.post('/create-post', upload.single('image'), async (req, res) => {
   try {
-    const Users = await User.find({ Cookie: req.cookies.auth });
-    if (req.cookies.auth === undefined || Users == []) {
-      res.send("Internal Server Error");
-      return 
+    
+    if (req.cookies.auth == undefined || req.cookies.auth == null) {
+      res.redirect('/login');
+      return;
     }
+    const Users = await User.find({ Cookie: req.cookies.auth });
     CurrentUser = Users[0];
     var OwnerID = CurrentUser.id;
     const { Model, Condition, Price, Description, Location } = req.body;
