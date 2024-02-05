@@ -279,7 +279,55 @@ app.get('/profile', async function (req,res){
   }
 });
 
+app.get('/profileview/:UID', async function (req,res){
+  try{
+    if (!req.cookies.auth) {
+      res.redirect('/login');
+      return;
+    }
 
+    var userID = req.params.UID;
+    var currentuser = await User.findById(userID);
+
+    var postid = currentuser.Posts;
+    console.log(postid);
+
+    var postlist = [];
+    for (let i = 0; i < postid.length; i++) { 
+      var posts = await Post.findById(postid[i]);
+      if (posts) {
+
+        //Description cut off at end for '...'
+        var Desc1 = posts.Description;
+        var Desc2 = Desc1.split(' ');
+        var Description = Desc2.slice(0, 20).join(' ') + '...';
+        
+        let newobj = {
+          Model: posts.Model,
+          Img: posts.Img,
+          Description: Description,
+          PostedAt: formatPostDateAgo(posts.PostedAt),
+          Price: posts.Price,
+          PID: postid[i],
+        }; 
+        postlist.push(newobj); 
+      }
+    }
+    var user = ({
+      Username: currentuser.Username,
+      Email: currentuser.Email,
+      Password: currentuser.Password,
+      JoinedAt: dateParser(currentuser.JoinedAt),
+      PhoneNumber : currentuser.PhoneNumber,
+      ProfileImg: currentuser.ProfileImg,
+    })
+
+      res.render(path.join(__dirname,'./website/templates/profilePage.ejs'),{user:user, post:postlist});
+    }catch(error){
+    console.log(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
 
 app.post('/api/rent-request/:PID',async function(req,res){
 
@@ -388,15 +436,19 @@ app.get('/post/:pid', async function (req, res) {
       res.redirect('/login');
       return;
     }
-    var requser = await User.find({Cookie : req.cookies.auth});
+
+    const postId = req.params.pid;
+    const postList = await Post.findById(postId);
+    const UID = postList.OwnerID;
+  
+    var requser = await User.find(UID);
     var currentuser =requser[0];
     var user = ({
         Username: currentuser.Username,
         ProfileImg: currentuser.ProfileImg,
+        UID : currentuser._id
       })
     
-    const postId = req.params.pid;
-    const postList = await Post.findById(postId);
 
     const post={
       Model: postList.Model,
