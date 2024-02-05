@@ -298,6 +298,33 @@ app.post('/create-post', upload.single('image'), async (req, res) => {
   }
 });
 
+
+app.get('/post/:pid', async function (req, res) {
+  try {
+    if (!req.cookies.auth) {
+      res.redirect('/login');
+      return;
+    }
+    var requser = await User.find({Cookie : req.cookies.auth});
+    var currentuser =requser[0];
+    var user = ({
+        Username: currentuser.Username,
+        ProfileImg: currentuser.ProfileImg,
+      })
+    
+    const postId = req.params.pid;
+    const post = await Post.findById(postId);
+    if (!post) {
+      res.status(404).send('Post not found');
+      return;
+    }
+    res.render(path.join(__dirname, './website/templates/postview.ejs'), { post:post ,user: user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
 app.listen(port, function(){
     console.log('Running server on port '+port);
 });
