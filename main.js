@@ -86,8 +86,45 @@ async function connectToDatabase(){
 connectToDatabase();
 
 //Routes
-app.get('/', function(req,res){
-  res.sendFile(path.join(__dirname + '/website/templates/index.html'));
+app.get('/', async (req,res) => {
+  try{
+    if (req.cookies.auth==null||req.cookies.auth==undefined){
+      res.redirect('/login');
+      return;
+    }
+    var requser = await User.find({Cookie : req.cookies.auth});
+    var currentuser =requser[0];
+    var user = ({
+      Username: currentuser.Username,
+      ProfileImg: currentuser.ProfileImg,
+    });
+
+      var userpost = await Post.find({});
+      var postsArray = [];
+      for (let i = 0; i < userpost.length; i++) {
+        var currentposts = userpost[i];
+        var Desc1 = currentposts.Description;         
+        var Desc2 = Desc1.split(' ');         
+        var Description = Desc2.slice(0, 5).join(' ') + '...';
+        if (currentposts.Model !== undefined) {
+          var post = {
+            Model: currentposts.Model,
+            Img: currentposts.Img,
+            Price: currentposts.Price,
+            Description: Description,
+            Location: currentposts.Location,
+            Condition: currentposts.Condition,
+            PID : currentposts._id
+          };
+          postsArray.push(post); 
+          console.log(postsArray);
+        }
+      }
+      res.render(path.join(__dirname, './website/templates/index.ejs'), { user: user, post: postsArray });
+    } catch (error) {
+      console.log(error);
+      res.status(500).send('Internal Server Error');
+    }
 });
 
 app.get('/login', function(req,res){
