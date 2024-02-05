@@ -167,30 +167,50 @@
 
                   <div class="row">
                     <div class="col-lg-3 col-md-4 label ">Full Name</div>
-                    <div class="col-lg-9 col-md-8"><%=  user.Username %></div>
+                    <div class="col-lg-9 col-md-8"><%= user.Username %></div>
                   </div>
 
                   <div class="row">
                     <div class="col-lg-3 col-md-4 label">Account Created on:</div>
-                    <div class="col-lg-9 col-md-8"><%=  user.JoinedAt %></div>
+                    <div class="col-lg-9 col-md-8"><%= user.JoinedAt %></div>
                   </div>
 
                   <div class="row">
                     <div class="col-lg-3 col-md-4 label">Phone</div>
-                    <div class="col-lg-9 col-md-8">(+91)<%=  user.PhoneNumber %></div>
+                    <div class="col-lg-9 col-md-8">(+91)<%= user.PhoneNumber %></div>
                   </div>
 
                   <div class="row">
                     <div class="col-lg-3 col-md-4 label">Email</div>
-                    <div class="col-lg-9 col-md-8"><%=  user.Email %></div>
+                    <div class="col-lg-9 col-md-8"><%= user.Email %></div>
                   </div>
                   <br>
                   <hr>
 
 
                   <div class="row">
-                    <div class="col-lg-3 col-md-4 label">Posts</div>
-                    <div class="col-lg-9 col-md-8"><%=  user.Posts %></div>
+                    <div class="col-lg-3 col-md-4 label">Posts</div><br><br>
+                    <% for (let i=0;i<post.length; i++){ %>  
+                  <a href="/post/<%= post[i].PID %>">
+                    <div class="card mb-3">
+                        <div class="row g-0">
+                          <div class="col-md-4">
+                            <img src="assets/img/<%= post[i].Img %>" class="img-fluid rounded-start" alt="...">
+                          </div>
+                          <div class="col-md-8">
+                            <div class="card-body">
+                              <h5 class="card-title"><%= post[i].Model %></h5>
+                              <p class="card-text">
+                                <%= post[i].Description %> <br>
+                                <br>Rs. <%= post[i].Price %>
+                                <br><br> <%= post[i].PostedAt %>
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </a>
+                      <% } %>
                   </div>
 
                 </div>
@@ -279,12 +299,11 @@
 
                 
 
-                </div>
-
+<!--
                 <div class="tab-pane fade pt-3" id="profile-settings">
 
                 <div class="tab-pane fade pt-3 active show" id="profile-change-password" role="tabpanel">
-                  <!-- Change Password Form -->
+                  Change Password Form 
                   <form>
 
                     <div class="row mb-3">
@@ -311,7 +330,7 @@
                     <div class="text-center">
                       <button type="submit" class="btn btn-primary">Change Password</button>
                     </div>
-                  </form><!-- End Change Password Form -->
+                  </form> End Change Password Form -->
 
                 </div>
 

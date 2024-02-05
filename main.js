@@ -179,17 +179,65 @@ app.get('/profile', async function (req,res){
       return;
     }
     var requser = await User.find({Cookie : req.cookies.auth});
-    var currentuser =requser[0];
+    var currentuser = requser[0];
+
+    var postid = currentuser.Posts;
+    console.log(postid);
+
+    var postlist = [];
+    for (let i = 0; i < postid.length; i++) { 
+      var posts = await Post.findById(postid[i]);
+      if (posts) {
+
+        //Description cut off at end for '...'
+        var Desc1 = posts.Description;
+        var Desc2 = Desc1.split(' ');
+        var Description = Desc2.slice(0, 20).join(' ') + '...';
+
+        //Date format function for Posts
+        let dateObject = new Date(posts.PostedAt);
+        let day = dateObject.getDate();
+        let month = dateObject.getMonth() + 1;
+        let year = dateObject.getFullYear(); 
+        let daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        let dayName = daysOfWeek[dateObject.getDay()];
+        let formattedDatePosts = `${dayName} ${day}-${month}-${year}`;
+
+
+        let newobj = {
+          Model: posts.Model,
+          Img: posts.Img,
+          Description: Description,
+          PostedAt: formattedDatePosts,
+          Price: posts.Price,
+          PID: postid[i],
+        }; 
+        postlist.push(newobj); 
+      }
+    }
+    console.log(postlist);
+
+    //Date format function for user
+    let dateObject = new Date(currentuser.JoinedAt);
+    let day = dateObject.getDate();
+    let month = dateObject.getMonth() + 1;
+    let year = dateObject.getFullYear(); 
+    let daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    let dayName = daysOfWeek[dateObject.getDay()];
+    let formattedDateUser = `${dayName} ${day}-${month}-${year}`;
+
+
     var user = ({
       Username: currentuser.Username,
       Email: currentuser.Email,
       Password: currentuser.Password,
-      JoinedAt: currentuser.JoinedAt,
-      Posts: currentuser.Posts,
+      JoinedAt: formattedDateUser,
       PhoneNumber : currentuser.PhoneNumber,
       ProfileImg: currentuser.ProfileImg,
     })
-      res.render(path.join(__dirname,'./website/templates/profilePage.ejs'),{user:user});
+
+
+      res.render(path.join(__dirname,'./website/templates/profilePage.ejs'),{user:user, post:postlist});
     }catch(error){
     console.log(error);
     res.status(500).send('Internal Server Error');
