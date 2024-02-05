@@ -85,6 +85,31 @@ async function connectToDatabase(){
 };
 connectToDatabase();
 
+
+//Functions 
+
+
+//Date format function for Posts (posts.PostedAt)
+function dateParser(rawDate){
+  let dateObject = new Date(rawDate);
+  let day = dateObject.getDate();
+  let month = dateObject.getMonth() + 1;
+  let year = dateObject.getFullYear(); 
+  let daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  let dayName = daysOfWeek[dateObject.getDay()];
+  let formattedDatePosts = `${dayName} ${day}-${month}-${year}`;
+  return formattedDatePosts;
+}
+
+//Function to show posted how many days ago
+function formatPostDateAgo(postDate) {
+  let postDateTime = new Date(postDate).getTime(); 
+  let currentDateTime = new Date().getTime(); 
+  let differenceInMs = currentDateTime - postDateTime;
+  let differenceInDays = Math.floor(differenceInMs / (1000 * 60 * 60 * 24)); 
+  return differenceInDays;
+}
+
 //Routes
 app.get('/', async (req,res) => {
   try{
@@ -98,23 +123,19 @@ app.get('/', async (req,res) => {
       Username: currentuser.Username,
       ProfileImg: currentuser.ProfileImg,
     });
-
       var userpost = await Post.find({});
       var postsArray = [];
       for (let i = 0; i < userpost.length; i++) {
         var currentposts = userpost[i];
-        var Desc1 = currentposts.Description;         
-        var Desc2 = Desc1.split(' ');         
-        var Description = Desc2.slice(0, 5).join(' ') + '...';
         if (currentposts.Model !== undefined) {
           var post = {
             Model: currentposts.Model,
             Img: currentposts.Img,
             Price: currentposts.Price,
-            Description: Description,
             Location: currentposts.Location,
             Condition: currentposts.Condition,
-            PID : currentposts._id
+            PID : currentposts._id,
+            Date : formatPostDateAgo(currentposts.PostedAt)
           };
           postsArray.push(post); 
           console.log(postsArray);
@@ -230,49 +251,26 @@ app.get('/profile', async function (req,res){
         var Desc1 = posts.Description;
         var Desc2 = Desc1.split(' ');
         var Description = Desc2.slice(0, 20).join(' ') + '...';
-
-        //Date format function for Posts
-        let dateObject = new Date(posts.PostedAt);
-        let day = dateObject.getDate();
-        let month = dateObject.getMonth() + 1;
-        let year = dateObject.getFullYear(); 
-        let daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        let dayName = daysOfWeek[dateObject.getDay()];
-        let formattedDatePosts = `${dayName} ${day}-${month}-${year}`;
-
-
+        
         let newobj = {
           Model: posts.Model,
           Img: posts.Img,
           Description: Description,
-          PostedAt: formattedDatePosts,
+          PostedAt: formatPostDateAgo(posts.PostedAt),
           Price: posts.Price,
           PID: postid[i],
         }; 
         postlist.push(newobj); 
       }
     }
-    console.log(postlist);
-
-    //Date format function for user
-    let dateObject = new Date(currentuser.JoinedAt);
-    let day = dateObject.getDate();
-    let month = dateObject.getMonth() + 1;
-    let year = dateObject.getFullYear(); 
-    let daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    let dayName = daysOfWeek[dateObject.getDay()];
-    let formattedDateUser = `${dayName} ${day}-${month}-${year}`;
-
-
     var user = ({
       Username: currentuser.Username,
       Email: currentuser.Email,
       Password: currentuser.Password,
-      JoinedAt: formattedDateUser,
+      JoinedAt: dateParser(currentuser.JoinedAt),
       PhoneNumber : currentuser.PhoneNumber,
       ProfileImg: currentuser.ProfileImg,
     })
-
 
       res.render(path.join(__dirname,'./website/templates/profilePage.ejs'),{user:user, post:postlist});
     }catch(error){
@@ -398,7 +396,18 @@ app.get('/post/:pid', async function (req, res) {
       })
     
     const postId = req.params.pid;
-    const post = await Post.findById(postId);
+    const postList = await Post.findById(postId);
+
+    const post={
+      Model: postList.Model,
+      Condition: postList.Condition,
+      Price: postList.Price,
+      Description: postList.Description,
+      Location: postList.Location,
+      PostedAt: dateParser(postList.PostedAt),
+      id : postId,
+    }
+
     if (!post) {
       res.status(404).send('Post not found');
       return;
