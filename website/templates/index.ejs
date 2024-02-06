@@ -125,6 +125,13 @@
 
 </header><!-- End Header -->
 
+<% if(messages.Success) { %>
+  <div>
+  <ul class="alert alert-success text-center">
+    <li><%=messages.Success%></li>
+  </ul>
+  </div>
+<% } %>
 
   <main id="main" class="main">
 

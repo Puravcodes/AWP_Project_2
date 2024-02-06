@@ -141,7 +141,7 @@ app.get('/home', async (req,res) => {
           console.log(postsArray);
         }
       }
-      res.render(path.join(__dirname, './website/templates/index.ejs'), { user: user, post: postsArray });
+      res.render(path.join(__dirname, './website/templates/index.ejs'), { user: user, post: postsArray, messages: req.flash() });
     } catch (error) {
       console.log(error);
       res.status(500).send('Internal Server Error');
@@ -192,7 +192,7 @@ return res.redirect('/login');
 } 
 });
 
-app.get('/logout',async (req,res) => {
+app.get('/logout', async (req,res) => {
   try {
   await User.findOneAndUpdate({Cookie : req.cookies.auth},{Cookie : null});
   await res.clearCookie('auth');
@@ -206,23 +206,28 @@ app.get('/signup',function(req,res){
   res.render(path.join(__dirname+'/website/templates/signupPage.ejs'),{ messages: req.flash() });
 });
 
-app.post('/signup', async (req,res) => {
+app.post('/signup', upload.single('image'), async (req,res) => {
   try{
     const { firstname, lastname, email, password, phoneNumber } = req.body;
+    const image = req.file ? `${req.file.filename}` : null;
     const data = new User ({
     FirstName: firstname,
     LastName: lastname,
     Email: email,
     Password: password,
     PhoneNumber: phoneNumber,
+    ProfileImg : image
   });
   await data.save();
+  req.flash("Success", "Account Created Successfully");
   res.redirect('/login');
 }catch(error){
   console.error('Error creating post:', error);
   if(res.status(500)){
     if(error.code == 11000){
       req.flash("error" , "Account Already Registered with the Given Email"); 
+    } else {
+      req.flash("error" , "Phone Number Limit Exceeded"); 
     }
     return res.redirect('/signup');
   }
