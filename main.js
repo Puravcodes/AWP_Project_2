@@ -111,7 +111,7 @@ function formatPostDateAgo(postDate) {
 }
 
 //Routes
-app.get('/', async (req,res) => {
+app.get('/home', async (req,res) => {
   try{
     if (req.cookies.auth==null||req.cookies.auth==undefined){
       res.redirect('/login');
@@ -176,7 +176,7 @@ if(await user.VerifyPassword(password)) {
     httpOnly : true,
   }); 
    await User.updateOne(myquery, {Cookie : ck});
-    res.redirect('/');
+    res.redirect('/home');
     next();
   }else{
     throw new Error("WRONG Password");
@@ -196,7 +196,7 @@ app.get('/logout',async (req,res) => {
   try {
   await User.findOneAndUpdate({Cookie : req.cookies.auth},{Cookie : null});
   await res.clearCookie('auth');
-  await res.redirect('/login');
+  await res.redirect('/');
 }catch(error){
   res.send(error.message);
   }
@@ -470,6 +470,10 @@ app.get('/post/:pid', async function (req, res) {
     console.error(error);
     res.status(500).send('Internal Server Error');
   }
+});
+
+app.get('/', async function(req, res){
+  res.render(path.join(__dirname, './website/templates/landingpage.ejs'));
 });
 
 app.listen(port, function(){
