@@ -36,53 +36,7 @@
   <style type="text/css" id="operaUserStyle"></style><style type="text/css"></style>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      
-      function validateForm() {
-       
-        var modelInput = document.getElementById('Model');
-        var conditionInput = document.getElementById('Condition');
-        var priceInput = document.getElementById('Price');
-        var descriptionInput = document.getElementById('Description');
-        var locationInput = document.getElementById('Location');
-  
-       
-        var modelValue = modelInput.value.trim();
-        var conditionValue = conditionInput.value.trim();
-        var priceValue = priceInput.value.trim();
-        var descriptionValue = descriptionInput.value.trim();
-        var locationValue = locationInput.value.trim();
-  
-        
-        if (modelValue === '' || conditionValue === '' || priceValue === '' || descriptionValue === '' || locationValue === '') {
-          alert('Please fill out all fields.');
-          return false;
-        }
-  
-       
-        if (/^\d+$/.test(modelValue) || /^\d+$/.test(conditionValue) || /^\d+$/.test(descriptionValue) || /^\d+$/.test(locationValue)) {
-          alert('Cannot accept number inputs.');
-          return false;
-        }
-  
-        
-        if (!/^\d+$/.test(priceValue)) {
-          alert('Price can only accept number inputs.');
-          return false;
-        }
-  
-        
-        return true;
-      }
-  
-      
-      document.getElementById('myForm').addEventListener('submit', function(event) {
-       
-        if (!validateForm()) {
-          event.preventDefault();
-        }
-      });
-    });
+    
   </script>
   
 </head>
@@ -168,7 +122,14 @@
   
     <!-- ======= Sidebar ======= -->
     <!-- End Sidebar-->
-  
+    <% if(messages.Success) { %>
+      <div>
+      <ul class="alert alert-success text-center">
+        <li><%=messages.Success%></li>
+      </ul>
+      </div>
+    <% } %>
+
     <main id="main" class="main">
   
       <div class="pagetitle">
@@ -195,14 +156,15 @@
                   <div class="tab-pane fade profile-edit pt-3 active show" id="profile-edit" role="tabpanel">
   
                     <!-- Profile Edit Form -->
-                    <form action="/create-post" method="post" enctype="multipart/form-data" id="myForm">
+                    <form action="/create-post" class="needs-validation" method="post" enctype="multipart/form-data" id="myForm" novalidate>
                       <label for="image">Cycle Image:</label>
                       <input type="file" id="image" name="image" accept="image/*" required>
                     
                         <div class="row mb-3">
                           <label for="Model" class="col-md-4 col-lg-3 col-form-label">Model</label>
                           <div class="col-md-8 col-lg-9">
-                            <input name="Model" type="text" class="form-control" id="Model" required>
+                            <input name="Model" type="text" class="form-control" id="Model" pattern="^[^\s\d].*$" title="Input cannot be blank or contain only spaces" required>
+                            <div class="invalid-feedback">Please provide Model name</div>
                           </div>
                         </div>
                     
@@ -210,33 +172,37 @@
                         <div class="row mb-3">
                           <label for="Condition" class="col-md-4 col-lg-3 col-form-label">Condition</label>
                           <div class="col-md-8 col-lg-9">
-                            <input name="Condition" type="text" class="form-control" id="Condition" required>
+                            <input name="Condition" type="text" class="form-control" id="Condition" pattern="^[^\s\d].*$" title="Input cannot be blank or contain only spaces" required>
+                            <div class="invalid-feedback">Please provide proper Condition</div>
                           </div>
                         </div>
                     
                         <div class="row mb-3">
                           <label for="Price" class="col-md-4 col-lg-3 col-form-label">Price</label>
                           <div class="col-md-8 col-lg-9">
-                            <input name="Price" type="text" class="form-control" id="Price" required>
+                            <input name="Price" type="tel" class="form-control" id="Price" pattern="^\S.*$" title="Input cannot be blank or contain only spaces" required>
+                            <div class="invalid-feedback">Please provide Price</div>
                           </div>
                         </div>
                     
                         <div class="row mb-3">
                           <label for="Description" class="col-md-4 col-lg-3 col-form-label">Description</label>
                           <div class="col-md-8 col-lg-9">
-                            <input name="Description" type="text" class="form-control" id="Description" required>
+                            <input name="Description" type="text" class="form-control" id="Description" pattern="^[^\s\d].*$" title="Input cannot be blank or contain only spaces" required>
+                            <div class="invalid-feedback">Please provide proper Description</div>
                           </div>
                         </div>
                     
                         <div class="row mb-3">
                           <label for="Location" class="col-md-4 col-lg-3 col-form-label">Location</label>
                           <div class="col-md-8 col-lg-9">
-                            <input name="Location" type="text" class="form-control" id="Location" required>
+                            <input name="Location" type="text" class="form-control" id="Location" pattern="^[^\s\d].*$" title="Input cannot be blank or contain only spaces" required>
+                            <div class="invalid-feedback">Please provide proper Location</div>
                           </div>
                         </div><br>
                     
                         <div class="text-center">
-                          <button type="submit" class="btn btn-primary">Create Post</button>
+                          <button type="submit" class="btn btn-primary"  >Create Post</button>
                         </div>
                       </form>
   

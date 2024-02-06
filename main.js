@@ -391,7 +391,7 @@ app.get('/create-post', async (req, res) => {
       Username: currentuser.Username,
       ProfileImg: currentuser.ProfileImg,
     })
-      res.render(path.join(__dirname,'./website/templates/createPost.ejs'),{user:user});
+      res.render(path.join(__dirname,'./website/templates/createPost.ejs'),{user:user, messages:req.flash()});
     }catch(error){
     console.log(error);
     res.status(500).send('Internal Server Error');
@@ -426,8 +426,9 @@ app.post('/create-post', upload.single('image'), async (req, res) => {
     await newPost.save();
     var PostId = newPost.id; 
     await User.findOneAndUpdate({Cookie: req.cookies.auth}, {$push:{Posts: PostId}});
+    req.flash("Success" , "Post Created Successfully!");
+    res.redirect('/home');
 
-    res.send('Post created successfully!');
   } catch (error) {
     console.error('Error creating post:', error);
     res.status(500).send('Internal Server Error');
