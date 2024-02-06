@@ -458,6 +458,7 @@ app.get('/post/:pid', async function (req, res) {
       Location: postList.Location,
       PostedAt: dateParser(postList.PostedAt),
       id : postId,
+      Img: postList.Img,
     }
 
     if (!post) {
