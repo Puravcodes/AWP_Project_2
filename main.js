@@ -137,8 +137,7 @@ app.get('/home', async (req,res) => {
             PID : currentposts._id,
             Date : formatPostDateAgo(currentposts.PostedAt)
           };
-          postsArray.push(post); 
-          console.log(postsArray);
+          postsArray.push(post);
         }
       }
       res.render(path.join(__dirname, './website/templates/index.ejs'), { user: user, post: postsArray, messages: req.flash() });
@@ -152,7 +151,7 @@ app.get('/login', function(req,res){
   res.render(path.join(__dirname+'/website/templates/loginPage.ejs'),{ messages: req.flash() });
 });
 
-app.post('/login', async (req,res,next) => {
+app.post('/login', async (req,res) => {
 try {
 const { email, password } = req.body;
 const user = await User.findOne({ Email : email });
@@ -176,8 +175,8 @@ if(await user.VerifyPassword(password)) {
     httpOnly : true,
   }); 
    await User.updateOne(myquery, {Cookie : ck});
+    req.flash("Success", { message: "Logged In Successfully", timeout: 5000 } );
     res.redirect('/home');
-    next();
   }else{
     throw new Error("WRONG Password");
   }
@@ -219,7 +218,7 @@ app.post('/signup', upload.single('image'), async (req,res) => {
     ProfileImg : image
   });
   await data.save();
-  req.flash("Success", "Account Created Successfully");
+  req.flash("Success", { message: "Account Created Successfully", timeout: 5000 } );
   res.redirect('/login');
 }catch(error){
   console.error('Error creating post:', error);
@@ -426,7 +425,7 @@ app.post('/create-post', upload.single('image'), async (req, res) => {
     await newPost.save();
     var PostId = newPost.id; 
     await User.findOneAndUpdate({Cookie: req.cookies.auth}, {$push:{Posts: PostId}});
-    req.flash("Success" , "Post Created Successfully!");
+    req.flash("Success" , {message : "Post Created Successfully!", timeout : 5000 });
     res.redirect('/home');
 
   } catch (error) {

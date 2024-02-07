@@ -122,16 +122,31 @@
   
     <!-- ======= Sidebar ======= -->
     <!-- End Sidebar-->
-    <% if(messages.Success) { %>
-      <div>
-      <ul class="alert alert-success text-center">
-        <li><%=messages.Success%></li>
-      </ul>
-      </div>
-    <% } %>
+
 
     <main id="main" class="main">
+
+      <% if(messages.Success) { %>
+        <div id="flash-message">
+        <ul class="alert alert-success text-center">
+          <li><%=messages.Success[0].message%></li>
+        </ul>
+        </div>
+      <% } %>
   
+      <script>
+        window.onload = function() {
+            <% if(messages.Success && messages.Success.length > 0) { %>
+                setTimeout(function() {
+                    var flashMessage = document.getElementById('flash-message');
+                    if (flashMessage) {
+                        flashMessage.parentNode.removeChild(flashMessage);
+                    }
+                }, <%= messages.Success[0].timeout %>);
+            <% } %>
+        };
+    </script>
+    
       <div class="pagetitle">
         <h1>Create a Post</h1>
         <nav>
