@@ -138,9 +138,10 @@ app.get('/home', async (req,res) => {
             Date : formatPostDateAgo(currentposts.PostedAt)
           };
           postsArray.push(post); 
+          console.log(postsArray);
         }
       }
-      res.render(path.join(__dirname, './website/templates/index.ejs'), { user: user, post: postsArray });
+      res.render(path.join(__dirname, './website/templates/index.ejs'), { user: user, post: postsArray, messages: req.flash() });
     } catch (error) {
       console.log(error);
       res.status(500).send('Internal Server Error');
@@ -283,29 +284,19 @@ app.get('/profile', async function (req,res){
   }
 });
 
-app.get('/profileview/:uid', async function (req,res){
+app.get('/profileview/:UID', async function (req,res){
   try{
     if (!req.cookies.auth) {
       res.redirect('/login');
       return;
     }
 
-    var requser = await User.find({Cookie : req.cookies.auth});
-    currentuser = requser[0];
+    var userID = req.params.UID;
+    var currentuser = await User.findById(userID);
 
-    var curuser = ({
-      ProfileImg: currentuser.ProfileImg,
-      Username: currentuser.Username,
-      });
-
-    var userID = req.params.uid;
-    console.log('-----------');
-    console.log(userID);
-    console.log('-----------');
-    var Leaser = await User.findById(userID);
-      
-    var postid = Leaser.Posts;
+    var postid = currentuser.Posts;
     console.log(postid);
+
     var postlist = [];
     for (let i = 0; i < postid.length; i++) { 
       var posts = await Post.findById(postid[i]);
@@ -328,15 +319,15 @@ app.get('/profileview/:uid', async function (req,res){
       }
     }
     var user = ({
-      Username: Leaser.Username,
-      Email: Leaser.Email,
-      Password: Leaser.Password,
-      JoinedAt: dateParser(Leaser.JoinedAt),
-      PhoneNumber : Leaser.PhoneNumber,
-      ProfileImg: Leaser.ProfileImg,
+      Username: currentuser.Username,
+      Email: currentuser.Email,
+      Password: currentuser.Password,
+      JoinedAt: dateParser(currentuser.JoinedAt),
+      PhoneNumber : currentuser.PhoneNumber,
+      ProfileImg: currentuser.ProfileImg,
     })
 
-      res.render(path.join(__dirname,'./website/templates/leaserProfile.ejs'),{user:user, post:postlist, curuser:curuser});
+      res.render(path.join(__dirname,'./website/templates/profilePage.ejs'),{user:user, post:postlist});
     }catch(error){
     console.log(error);
     res.status(500).send('Internal Server Error');
@@ -452,28 +443,22 @@ app.get('/post/:pid', async function (req, res) {
       return;
     }
 
-    //Getting Post data
     const postId = req.params.pid;
     const postList = await Post.findById(postId);
-
-    // Leaser ID and information 
     const UID = postList.OwnerID;
-    var requser = await User.find(UID);
-    var Leaser = requser[0];
-
-    //current user information for navbar
-    var requser = await User.find({Cookie : req.cookies.auth});
-    var currentuser = requser[0];
   
+    var requser = await User.find(UID);
+    var currentuser =requser[0];
     var user = ({
-      ProfileImg: currentuser.ProfileImg,
-      Username: currentuser.Username,
+        Username: currentuser.Username,
+        ProfileImg: currentuser.ProfileImg,
+        Phone: currentuser.PhoneNumber,
+        Email: currentuser.Email,
+        UID : currentuser._id
       })
     
 
     const post={
-      Username: Leaser.Username,
-      UID : Leaser.id,
       Model: postList.Model,
       Condition: postList.Condition,
       Price: postList.Price,
