@@ -136,14 +136,14 @@
   
       <script>
         window.onload = function() {
-            <% if(messages.Success && messages.Success.length > 0) { %>
+             if(messages.Success && messages.Success.length > 0) { 
                 setTimeout(function() {
                     var flashMessage = document.getElementById('flash-message');
                     if (flashMessage) {
                         flashMessage.parentNode.removeChild(flashMessage);
                     }
-                }, <%= messages.Success[0].timeout %>);
-            <% } %>
+                },  messages.Success[0].timeout );
+             } 
         };
     </script>
     
