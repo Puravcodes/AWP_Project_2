@@ -7,7 +7,7 @@
 - Front End - Javascript
 - Forms Validation - JavaScript, AJAX
 - Database - MongoDB
-- UI/CSS - Bootstrap, CSS
+- UI/CSS - Bootstrap, CSS.
 
 
 **Note:**
