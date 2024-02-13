@@ -501,6 +501,43 @@ app.get('/', async function(req, res){
   res.render(path.join(__dirname, './website/templates/landingpage.ejs'));
 });
 
+app.post('/search', async (req,res) => {
+  try{
+    if (req.cookies.auth==null||req.cookies.auth==undefined){
+      res.redirect('/login');
+      return;
+    }
+    var requser = await User.find({Cookie : req.cookies.auth});
+    var currentuser =requser[0];
+    var user = ({
+      Username: currentuser.Username,
+      ProfileImg: currentuser.ProfileImg,
+    });
+      var userpost = await Post.find({ Model : {$regex : "/${req.model}/i"}}).where();
+      var postsArray = [];
+      for (let i = 0; i < userpost.length; i++) {
+        var currentposts = userpost[i];
+        if (currentposts.Model !== undefined) {
+          var post = {
+            Model: currentposts.Model,
+            Img: currentposts.Img,
+            Price: currentposts.Price,
+            Location: currentposts.Location,
+            Condition: currentposts.Condition,
+            PID : currentposts._id,
+            Date : formatPostDateAgo(currentposts.PostedAt)
+          };
+          postsArray.push(post);
+          console.log(postsArray);
+        }
+      }
+      res.render(path.join(__dirname, './website/templates/index.ejs'), { user: user, post: postsArray, messages: req.flash() });
+    } catch (error) {
+      console.log(error);
+      res.status(500).send('Internal Server Error');
+    }
+});
+
 app.listen(port, function(){
     console.log('Running server on port '+port);
 });
