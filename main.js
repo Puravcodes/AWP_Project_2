@@ -138,7 +138,6 @@ app.get('/home', async (req,res) => {
             Date : formatPostDateAgo(currentposts.PostedAt)
           };
           postsArray.push(post);
-          console.log(postsArray);
         }
       }
       res.render(path.join(__dirname, './website/templates/index.ejs'), { user: user, post: postsArray, messages: req.flash() });
@@ -276,12 +275,76 @@ app.get('/profile', async function (req,res){
       JoinedAt: dateParser(currentuser.JoinedAt),
       PhoneNumber : currentuser.PhoneNumber,
       ProfileImg: currentuser.ProfileImg,
+      FirstName : currentuser.FirstName,
+      LastName : currentuser.LastName
     })
 
       res.render(path.join(__dirname,'./website/templates/profilePage.ejs'),{user:user, post:postlist});
     }catch(error){
     console.log(error);
     res.status(500).send('Internal Server Error');
+  }
+});
+
+app.post('/profile', upload.single('image'), async function (req,res){
+  try{
+    
+    var requser = await User.find({Cookie : req.cookies.auth});
+    var currentuser = requser[0];
+    var user = ({
+      Username: currentuser.Username,
+      Email: currentuser.Email,
+      Password: currentuser.Password,
+      JoinedAt: dateParser(currentuser.JoinedAt),
+      PhoneNumber : currentuser.PhoneNumber,
+      ProfileImg: currentuser.ProfileImg,
+      FirstName : currentuser.FirstName,
+      LastName : currentuser.LastName
+    })
+
+    var userpost = await Post.find({});
+      var postsArray = [];
+      for (let i = 0; i < userpost.length; i++) {
+        var currentposts = userpost[i];
+        if (currentposts.Model !== undefined) {
+          var post = {
+            Model: currentposts.Model,
+            Img: currentposts.Img,
+            Price: currentposts.Price,
+            Location: currentposts.Location,
+            Condition: currentposts.Condition,
+            PID : currentposts._id,
+            Date : formatPostDateAgo(currentposts.PostedAt)
+          };
+          postsArray.push(post);
+        }
+      }
+
+    const { firstName, lastName, phone, email } = req.body;
+    if(email == user.Email){
+      console.log('no error');
+    }
+    else{
+      var check = await User.findOne({Email:email});
+      if(check === null){
+        null;
+      }
+      else{
+        throw new Error("Account Already Registered with the Given Email");
+      }
+    };
+  const image = req.file ? `${req.file.filename}` : user.ProfileImg;
+  await User.findOneAndUpdate({Cookie : req.cookies.auth},{
+    ProfileImg: image,
+    FirstName : firstName,
+    LastName : lastName,
+    PhoneNumber : phone,
+    Email : email
+  });
+  res.redirect('/profile');
+  }catch(error){
+    req.flash("error", error.message);
+    res.redirect('/profile');
   }
 });
 
@@ -510,12 +573,15 @@ app.delete('/post/:postId', async (req, res) => {
     const postId = req.params.postId;
     const deletedPost = await Post.findByIdAndDelete(postId);
     if (!deletedPost) {
-      return res.status(404).send({ error: 'Post not found' });
+      req.flash("error", "Post not found"); 
+      return res.status(404).redirect('/profile');
     }
-    res.status(200).send({ message: 'Post deleted successfully' });
+    req.flash("success", "Post deleted successfully"); 
+    res.send('/profile');
   } catch (error) {
     console.error('Error deleting post:', error);
-    res.status(500).send({ error: 'Internal Server Error' });
+    req.flash("error", "Internal Server Error"); 
+    return res.status(500).redirect('/profile');
   }
 });
 

@@ -172,9 +172,29 @@
   
                     <!-- Profile Edit Form -->
                     <form action="/create-post" class="needs-validation" method="post" enctype="multipart/form-data" id="myForm" novalidate>
-                      <label for="image">Cycle Image:</label>
-                      <input type="file" id="image" name="image" accept="image/*" required>
-                      <div class="invalid-feedback">Please provide an image!</div>
+        
+                      <div class="align-items-center">
+                        <label for="profileImage" class="col-12 mb-2">Cycle Image</label>
+                          <img id="current-profile-image" style="max-width: 200px;" alt="Profile">
+                            <label for="profile-image-upload" class="btn btn-primary btn-sm" title="Upload new profile image">
+                              <i class="bi bi-upload" style="color: aliceblue;"></i>
+                              <input id="profile-image-upload" type="file" accept="image/*" name="image" id="image" style="display: none;" required>
+                              <div class="invalid-feedback" style="color: aliceblue;">Please Upload Cycle Image!</div>
+                            </label>
+                      </div>
+
+                      <script>
+                        document.getElementById('profile-image-upload').addEventListener('change', function(event) {
+                          var file = event.target.files[0];
+                          if (file) {
+                            var reader = new FileReader();
+                            reader.onload = function(e) {
+                              document.getElementById('current-profile-image').src = e.target.result;
+                            }
+                            reader.readAsDataURL(file);
+                          }
+                        });
+                      </script> <br>
                     
                         <div class="row mb-3">
                           <label for="Model" class="col-md-4 col-lg-3 col-form-label">Model</label>

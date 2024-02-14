@@ -39,14 +39,27 @@
 </head>
 
 <body>
-<% if(messages.error) { %>
-  <div>
-  <ul class="alert alert-danger text-center">
-    <li><%=messages.error%></li>
-  </ul>
-  </div>
-<% } %>
   <main>
+
+    <% if(messages.error) { %>
+      <div id="flash-message" class="alert alert-danger text-center">
+        <%=messages.error%>
+      </div>
+    <% } %>
+    
+    <script>
+      window.onload = function() {
+          <% if(messages.error && messages.error.length > 0) { %>
+              setTimeout(function() {
+                  var flashMessage = document.getElementById('flash-message');
+                  if (flashMessage) {
+                      flashMessage.parentNode.removeChild(flashMessage);
+                  }
+              }, 5000);
+          <% } %>
+      };
+    </script>
+
     <div class="container">
 
       <section class="section register min-vh-100 d-flex flex-column align-items-center justify-content-center py-4">
@@ -71,11 +84,31 @@
                   </div>
 
                   <form class="row g-3 needs-validation" action="/signup" method="POST" enctype="multipart/form-data" novalidate>
-                    <div class="col-12">
-                      <label for="image">Profile Photo:</label>
-                      <input type="file" id="image" name="image" accept="image/*" required>
-                      <div class="invalid-feedback">Please, Upload Profile Photo!</div>
-                    </div>
+                      <div class="align-items-center" style="text-align: center;">
+                        <label for="profileImage" class="col-12 mb-2">Profile Photo</label><br>
+                        <div class="col-12">
+                          <img id="current-profile-image" style="max-width: 120px;" alt="Profile">
+                          <div class="pt-2">
+                            <label for="profile-image-upload" class="btn btn-primary btn-sm" title="Upload new profile image">
+                              <i class="bi bi-upload" style="color: aliceblue;"></i>
+                              <input id="profile-image-upload" type="file" accept="image/*" name="image" style="display: none;" required>
+                              <div class="invalid-feedback" style="color: aliceblue;">Please, Upload Profile Photo!</div>
+                            </label>
+                          </div>
+                        </div>
+                      </div>  
+                      <script>
+                        document.getElementById('profile-image-upload').addEventListener('change', function(event) {
+                          var file = event.target.files[0];
+                          if (file) {
+                            var reader = new FileReader();
+                            reader.onload = function(e) {
+                              document.getElementById('current-profile-image').src = e.target.result;
+                            }
+                            reader.readAsDataURL(file);
+                          }
+                        });
+                      </script>
 
                     <div class="col-12">
                       <label for="yourName" class="form-label">First Name</label>
@@ -109,7 +142,7 @@
 
                     <div class="col-12">
                       <label for="phoneNumber" class="form-label">Phone Number</label>
-                      <input type="number" maxlength="10" minlength="10" name="phoneNumber" class="form-control" id="phoneNumber" required>
+                      <input type="text" pattern="[0-9]{10}" name="phoneNumber" class="form-control" id="phoneNumber" required>
                       <div class="invalid-feedback">Please enter your phone number</div>
                     </div>
 

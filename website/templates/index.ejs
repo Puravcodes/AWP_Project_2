@@ -50,12 +50,21 @@
     
   </div><!-- End Logo -->
 
-  <div class="search-bar">
-    <form class="search-form d-flex align-items-center" method="POST" action="#">
-      <input type="text" name="query" placeholder="Search" title="Enter search keyword">
-      <button type="submit" title="Search"><i class="bi bi-search"></i></button>
+  <div class="input-group search-bar">
+    <form class="search-form d-flex align-items-center" method="POST" action="/search">
+      <input type="text" class="form-control" name="pincode" placeholder="Pincode" title="Enter search Pincode" style="width: 10rem;" oninput="validateInput(this)" minlength="6" maxlength="6" required> 
+      <input type="text" class="form-control" pattern="^[^\s\d].*$" name="model" placeholder="Search" title="Enter search Model">
+      <div class="input-group-append">
+        <button type="submit" title="Search"><i class="bi bi-search"></i></button>
+      </div>  
     </form>
   </div><!-- End Search Bar -->
+
+  <script>
+    function validateInput(input) {
+        input.value = input.value.replace(/[^0-9]/g, '');
+    }
+    </script>
 
   <nav class="header-nav ms-auto">
     <ul class="d-flex align-items-center">
@@ -128,10 +137,8 @@
   <main id="main" class="main">
 
     <% if(messages.Success) { %>
-      <div id="flash-message">
-      <ul class="alert alert-success text-center">
-        <li><%=messages.Success[0].message%></li>
-      </ul>
+      <div id="flash-message" class="alert alert-success text-center">
+        <%=messages.Success[0].message%>
       </div>
     <% } %>
 

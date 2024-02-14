@@ -48,7 +48,7 @@ function deletePost(PID) {
   .then(response => {
     if (response.ok) {
       console.log('Post deleted successfully');
-      location.reload();
+      location.reload('/profile');
     } else {
       console.error('Failed to delete post');
     }
@@ -145,6 +145,40 @@ function deletePost(PID) {
   </header><!-- End Header -->
 
   <main id="main" class="main">
+
+    <% if (messages.error) { %>
+      <div id="flash-message" class="alert alert-danger text-center">
+          <%= messages.error %>
+      </div>
+  <% } %>
+
+  <% if (messages.success) { %>
+    <div id="flash-success" class="alert alert-danger text-center">
+        <%= messages.success %>
+    </div>
+<% } %>
+
+  <script>
+    window.onload = function() {
+        <% if(messages.error && messages.error.length > 0) { %>
+            setTimeout(function() {
+                var flashMessage = document.getElementById('flash-message');
+                if (flashMessage) {
+                    flashMessage.parentNode.removeChild(flashMessage);
+                }
+            }, 5000); 
+        <% } %>
+
+        <% if(messages.success && messages.success.length > 0) { %>
+            setTimeout(function() {
+                var flashMessage = document.getElementById('flash-success');
+                if (flashMessage) {
+                    flashMessage.parentNode.removeChild(flashMessage);
+                }
+            }, 5000); 
+        <% } %>
+    };
+</script>
 
     <div class="pagetitle">
       <h1>Profile</h1>
@@ -249,76 +283,73 @@ function deletePost(PID) {
                   <div class="tab-pane fade profile-edit pt-3 " id="profile-edit" role="tabpanel">
 
                     <!-- Profile Edit Form -->
-                    <form>
+                    <form class="row g-3 needs-validation" action="/profile" method="POST" enctype="multipart/form-data" novalidate>
                       <div class="row mb-3">
                         <label for="profileImage" class="col-md-4 col-lg-3 col-form-label">Profile Image</label>
                         <div class="col-md-8 col-lg-9">
-                          <img src="assets/img/profile-img.jpg" alt="Profile">
+                          <img id="current-profile-image" src="assets/img/<%= user.ProfileImg %>" alt="Profile">
                           <div class="pt-2">
-                            <a href="#" class="btn btn-primary btn-sm" title="Upload new profile image"><i class="bi bi-upload"></i></a>
-                            <a href="#" class="btn btn-danger btn-sm" title="Remove my profile image"><i class="bi bi-trash"></i></a>
+                            <label for="profile-image-upload" class="btn btn-primary btn-sm" title="Upload new profile image">
+                              <i class="bi bi-upload" style="color: aliceblue;"></i>
+                              <input id="profile-image-upload" type="file" accept="image/*" name="image" style="display: none;">
+                            </label>
                           </div>
                         </div>
                       </div>
-  
+                      
+                      <script>
+                        document.getElementById('profile-image-upload').addEventListener('change', function(event) {
+                          var file = event.target.files[0];
+                          if (file) {
+                            var reader = new FileReader();
+                            reader.onload = function(e) {
+                              document.getElementById('current-profile-image').src = e.target.result;
+                            }
+                            reader.readAsDataURL(file);
+                          }
+                        });
+                      </script>
+
+                      <script>
+                        function validateInput(input) {
+                            input.value = input.value.replace(/[^a-zA-Z\s]/g, '');
+                        }
+                        </script>
+
                       <div class="row mb-3">
-                        <label for="fullName" class="col-md-4 col-lg-3 col-form-label">Full Name</label>
+                        <label for="FirstName" class="col-md-4 col-lg-3 col-form-label">First Name</label>
                         <div class="col-md-8 col-lg-9">
-                          <input name="fullName" type="text" class="form-control" id="fullName" value="Kevin Anderson">
+                          <input type="text" name="firstName" pattern="[^\s]+" class="form-control" id="firstName" oninput="validateInput(this)" required value=<%= user.FirstName %>>
+                          <div class="invalid-feedback">Please, enter your First name!</div>
                         </div>
                       </div>
-  
+
                       <div class="row mb-3">
-                        <label for="about" class="col-md-4 col-lg-3 col-form-label">About</label>
+                        <label for="LastName" class="col-md-4 col-lg-3 col-form-label">Last Name</label>
                         <div class="col-md-8 col-lg-9">
-                          <textarea name="about" class="form-control" id="about" style="height: 100px">Sunt est soluta temporibus accusantium neque nam maiores cumque temporibus. Tempora libero non est unde veniam est qui dolor. Ut sunt iure rerum quae quisquam autem eveniet perspiciatis odit. Fuga sequi sed ea saepe at unde.</textarea>
-                        </div>
-                      </div>
-  
-                      <div class="row mb-3">
-                        <label for="company" class="col-md-4 col-lg-3 col-form-label">Company</label>
-                        <div class="col-md-8 col-lg-9">
-                          <input name="company" type="text" class="form-control" id="company" value="Lueilwitz, Wisoky and Leuschke">
-                        </div>
-                      </div>
-  
-                      <div class="row mb-3">
-                        <label for="Job" class="col-md-4 col-lg-3 col-form-label">Job</label>
-                        <div class="col-md-8 col-lg-9">
-                          <input name="job" type="text" class="form-control" id="Job" value="Web Designer">
-                        </div>
-                      </div>
-  
-                      <div class="row mb-3">
-                        <label for="Country" class="col-md-4 col-lg-3 col-form-label">Country</label>
-                        <div class="col-md-8 col-lg-9">
-                          <input name="country" type="text" class="form-control" id="Country" value="USA">
-                        </div>
-                      </div>
-  
-                      <div class="row mb-3">
-                        <label for="Address" class="col-md-4 col-lg-3 col-form-label">Address</label>
-                        <div class="col-md-8 col-lg-9">
-                          <input name="address" type="text" class="form-control" id="Address" value="A108 Adam Street, New York, NY 535022">
+                          <input name="lastName" type="text" pattern="[^\s]+" class="form-control" id="lastName" oninput="validateInput(this)" required value=<%= user.LastName %>>
+                          <div class="invalid-feedback">Please, enter your Last name!</div>
                         </div>
                       </div>
   
                       <div class="row mb-3">
                         <label for="Phone" class="col-md-4 col-lg-3 col-form-label">Phone</label>
                         <div class="col-md-8 col-lg-9">
-                          <input name="phone" type="text" class="form-control" id="Phone" value="(436) 486-3538 x29071">
+                          <input name="phone" type="text" class="form-control" id="Phone" pattern="[0-9]{10}" required value=<%= user.PhoneNumber %>>
+                          <div class="invalid-feedback">Invalid Phone Number</div>
                         </div>
                       </div>
   
                       <div class="row mb-3">
                         <label for="Email" class="col-md-4 col-lg-3 col-form-label">Email</label>
                         <div class="col-md-8 col-lg-9">
-                          <input name="email" type="email" class="form-control" id="Email" value="k.anderson@example.com">
+                          <input name="email" type="email" class="form-control" id="Email" required value=<%= user.Email %>>
+                          <div class="invalid-feedback">Invalid Email Address</div>
                         </div>
                       </div>
   
                       <div class="text-center">
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                        <button type="submit" onclick="empty(document.getElementById('firstName'))" class="btn btn-primary">Save Changes</button>
                       </div>
                     </form><!-- End Profile Edit Form -->
   
