@@ -31,6 +31,10 @@ const NotificationSchema = mongoose.Schema({
             ref: "User",
             required: true
         }
+    },
+    Post : {
+        type : mongoose.SchemaTypes.ObjectId,
+        required : true
     }
 })
 

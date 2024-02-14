@@ -375,10 +375,12 @@ app.post('/api/rent-request/:PID',async function(req,res){
       Users : {
         Leaser : CurrentPost.OwnerID,
         Renter : CurrentUser.id
-      }
+      },
+      Post : CurrentPost.id
     })
     try{
       await notification1.save();
+      await User.findOneAndUpdate({id: CurrentPost.OwnerID}, {$push:{Notifications: notification1.id}})
     }catch(e){
       console.log(e);
       res.send({"Status":1,"Msg":"Error Occured While Processing"})
@@ -514,7 +516,9 @@ app.post('/search', async (req,res) => {
       Username: currentuser.Username,
       ProfileImg: currentuser.ProfileImg,
     });
-      var userpost = await Post.find({ Model : {$regex : "/${req.model}/i"}}).where();
+
+
+      var userpost = await Post.find({ Model : {$regex : "/$req.model/i"}}).where();
       var postsArray = [];
       for (let i = 0; i < userpost.length; i++) {
         var currentposts = userpost[i];
@@ -626,48 +630,101 @@ app.post('/edit-post/:postId', upload.single('image'), async (req, res) => {
   }
 });
 
-app.post('/search', async (req,res) => {
+
+app.get("/api/rent-approval/:NID", async function (req, res){
   try{
+
     if (req.cookies.auth==null||req.cookies.auth==undefined){
-      res.redirect('/login');
+      res.send({"Status" : "1", "Msg": "Error User Not Authenticated"});
       return;
     }
-    var requser = await User.find({Cookie : req.cookies.auth});
-    var currentuser =requser[0];
-    var user = ({
-      Username: currentuser.Username,
-      ProfileImg: currentuser.ProfileImg,
-    });
-    console.log(req.body.model)
-    var model = req.body.model;
-    var pincode = req.body.pincode.substr(0,5);
-    console.log(pincode)
-      re_model = new RegExp(model);
-      re_pincode = new RegExp(pincode);
-      var userpost = await Post.find({ Model : {$regex : re_model , $options : "i"}}).where({Location : {$regex : re_pincode}});
-      var postsArray = [];
-      for (let i = 0; i < userpost.length; i++) {
-        var currentposts = userpost[i];
-        if (currentposts.Model !== undefined) {
-          var post = {
-            Model: currentposts.Model,
-            Img: currentposts.Img,
-            Price: currentposts.Price,
-            Location: currentposts.Location,
-            Condition: currentposts.Condition,
-            PID : currentposts._id,
-            Date : formatPostDateAgo(currentposts.PostedAt)
-          };
-          postsArray.push(post);
-        }
-      }
-      console.log(postsArray);
-      res.render(path.join(__dirname, './website/templates/index.ejs'), { user: user, post: postsArray, messages: req.flash() });
-    } catch (error) {
-      console.log(error);
-      res.status(500).send('Internal Server Error');
+
+    CurrentUser = await User.find({Cookie : req.cookies.auth})
+    if (CurrentUser == []){
+      res.send({"Status" : "1", "Msg": "Error User Not Authenticated"});
+      return ;
     }
-});
+    CurrentNotification = await Notification.findById(req.params.NID);
+
+    await Notification.findOneAndUpdate({_id : req.params.NID}, {
+      Status : false,
+      ApprovalNeeded : false,
+      Approved : "Success",
+    });
+
+    NewNotification = new Notification({
+      Title : "Rent Request Approved by Leaser",
+      Description : "Unavailable",
+      Status : true,
+      ApprovalNeeded : false,
+      Users : {
+        Leaser : CurrentNotification.Users.Leaser,
+        Renter : CurrentNotification.Users.Renter
+      },
+      Post : CurrentNotification.Post
+    });
+
+    //await NewNotification.save();
+    renter = CurrentNotification.Users.Renter
+    console.log(renter)
+    newnoti = NewNotification.id
+    oldnoti = CurrentNotification.Post
+    await User.findOneAndUpdate({_id : renter},{$push : {Notifications : newnoti}});
+    await User.findOneAndUpdate({_id : renter},{$push : {RentedCycles : oldnoti}});
+
+    res.send({"Status": "0", "Msg" : "Rent Approved Succesfully"})
+
+  }catch(e){
+    console.log(e);
+    res.send({"Status" : "1", "Msg": "Error Occurred while Processing. Contact Support"});
+    return;
+  }
+})
+
+app.get("/api/rent-denial/:NID", async function (req, res){
+  try{
+
+    if (req.cookies.auth==null||req.cookies.auth==undefined){
+      res.send({"Status" : "1", "Msg": "Error User Not Authenticated"});
+      return;
+    }
+
+    CurrentUser = await User.find({Cookie : req.cookies.auth})
+    if (CurrentUser = []){
+      res.send({"Status" : "1", "Msg": "Error User Not Authenticated"});
+      return ;
+    }
+
+    CurrentNotification = await Notification.findById(req.params.NID);
+    await Notification.findOneAndUpdate({_id : req.params.NID},{
+      Status : false,
+      ApprovalNeeded : false,
+      Approved : "Denied",
+    });
+
+    NewNotification = new Notification({
+      Title : "Rent Request Denied by Leaser",
+      Description : "Unavailable",
+      Status : true,
+      ApprovalNeeded : false,
+      Users : {
+        Leaser : CurrentNotification.Users.Leaser,
+        Renter : CurrentNotification.Users.Renter
+      },
+      Post : CurrentNotification.Post
+    });
+
+    await NewNotification.save();
+    await User.findOneAndUpdate({_id :CurrentNotification.Users.Renter},{$push : {Notifications : NewNotification.id}});
+    res.send({"Status": "0", "Msg" : "Rent Denied Succesfully"})
+
+  }catch(e){
+    console.log(e);
+    res.send({"Status" : "1", "Msg": "Error Occurred while Processing. Contact Support"});
+    return;
+  }
+})
+
 
 app.listen(port, function(){
     console.log('Running server on port '+port);

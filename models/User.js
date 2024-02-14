@@ -45,7 +45,7 @@ const UserSchema = new mongoose.Schema({
   },
   Notifications: {
     type: [mongoose.SchemaTypes.ObjectId],
-    require: false,
+    required: false,
   },
   RentedCycles: {
     type: [mongoose.SchemaTypes.ObjectId],
@@ -53,7 +53,7 @@ const UserSchema = new mongoose.Schema({
   },
   Cookie: {
     type: String,
-    requried: false,
+    required: false,
   },
 });
 
