@@ -218,11 +218,11 @@
                         
                         <!-- Input for Location -->
                         <div class="row mb-3">
-                            <label for="Location" class="col-md-4 col-lg-3 col-form-label">Location</label>
-                            <div class="col-md-8 col-lg-9">
-                                <input name="Location" type="text" class="form-control" id="Location" pattern="^[^\s\d].*$" title="Input cannot be blank or contain only spaces" value="<%= post.Location %>" required>
-                                <div class="invalid-feedback">Please provide proper Location</div>
-                            </div>
+                          <label for="Pincode" class="col-md-4 col-lg-3 col-form-label">Pincode</label>
+                          <div class="col-md-8 col-lg-9">
+                            <input name="Location" type="text" class="form-control" id="Pincode" pattern="[0-9]{6}" title="Pincode Can only have 6 Digits" required>
+                            <div class="invalid-feedback">Please provide proper Pincode</div>
+                          </div>
                         </div><br>
                         
                         <!-- Submit Button -->
