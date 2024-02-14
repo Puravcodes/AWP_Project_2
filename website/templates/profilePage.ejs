@@ -41,8 +41,24 @@
 
 <body class="toggle-sidebar" ng-controller="DataController">
   <script>
+function deletePost(PID) {
+  fetch(`/post/${PID}`, {
+    method: 'DELETE'
+  })
+  .then(response => {
+    if (response.ok) {
+      console.log('Post deleted successfully');
+      location.reload();
+    } else {
+      console.error('Failed to delete post');
+    }
+  })
+  .catch(error => {
+    console.error('Error deleting post:', error);
+  });
+}
 
-  </script>
+    </script>
 
   <!-- ======= Header ======= -->
   <header id="header" class="header fixed-top d-flex align-items-center">
@@ -218,6 +234,9 @@
                         </div>
                       </div>
                     </a>
+                  
+                  <button class="btn btn-danger" onclick="deletePost('<%= post[i].PID %>')">Delete Post</button>
+
                       <% } %>
                   </div>
 

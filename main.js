@@ -264,6 +264,7 @@ app.get('/profile', async function (req,res){
           PostedAt: formatPostDateAgo(posts.PostedAt),
           Price: posts.Price,
           PID: postid[i],
+          id:postid,
         }; 
         postlist.push(newobj); 
       }
@@ -538,6 +539,19 @@ app.post('/search', async (req,res) => {
     }
 });
 
+app.delete('/post/:postId', async (req, res) => {
+  try {
+    const postId = req.params.postId;
+    const deletedPost = await Post.findByIdAndDelete(postId);
+    if (!deletedPost) {
+      return res.status(404).send({ error: 'Post not found' });
+    }
+    res.status(200).send({ message: 'Post deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting post:', error);
+    res.status(500).send({ error: 'Internal Server Error' });
+  }
+});
 app.listen(port, function(){
     console.log('Running server on port '+port);
 });
