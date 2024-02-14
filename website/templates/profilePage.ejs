@@ -235,7 +235,8 @@ function deletePost(PID) {
                       </div>
                     </a>
                   
-                  <button class="btn btn-danger" onclick="deletePost('<%= post[i].PID %>')">Delete Post</button>
+                  <button style="width:7rem; margin-right: 0.5rem;margin-bottom: 1rem;"  class="btn btn-danger" onclick="deletePost('<%= post[i].PID %>')">Delete Post</button>
+                  <a href="/edit-post/<%= post[i].PID %>" class="btn btn-warning" style="width:7rem;margin-bottom: 1rem;"> Edit Post </a>
 
                       <% } %>
                   </div>

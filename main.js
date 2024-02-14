@@ -552,6 +552,80 @@ app.delete('/post/:postId', async (req, res) => {
     res.status(500).send({ error: 'Internal Server Error' });
   }
 });
+
+app.get('/edit-post/:postId', async (req, res) => {
+  try {
+    if (!req.cookies.auth) {
+      req.flash("Error", { message: "Please log in to edit a post", timeout: 5000 });
+      res.redirect('/login');
+      return;
+    }
+    const currentUser = await User.findOne({ Cookie: req.cookies.auth });
+    if (!currentUser) {
+      req.flash("Error", { message: "User not found. Please log in again.", timeout: 5000 });
+      res.redirect('/login');
+      return;
+    }
+    const post = await Post.findById(req.params.postId);
+    if (!post) {
+      req.flash("Error", { message: "Post not found", timeout: 5000 });
+      
+      return;
+    }
+    if (post.OwnerID.toString() !== currentUser.id.toString()) {
+      req.flash("Error", { message: "You are not authorized to edit this post", timeout: 5000 });
+     
+      return;
+    }
+    res.render(path.join(__dirname,'./website/templates/editpost.ejs'),{ post: post, user: currentUser, messages: req.flash()});
+
+  } catch (error) {
+    console.error('Error rendering edit post form:', error);
+    req.flash("Error", { message: "Internal Server Error", timeout: 5000 });
+  }
+});
+
+app.post('/edit-post/:postId', upload.single('image'), async (req, res) => {
+  try {
+    if (!req.cookies.auth) {
+      req.flash("Error", { message: "Please log in to edit a post", timeout: 5000 });
+      res.redirect('/login');
+      return;
+    }
+    const currentUser = await User.findOne({ Cookie: req.cookies.auth });
+    if (!currentUser) {
+      req.flash("Error", { message: "User not found. Please log in again.", timeout: 5000 });
+      res.redirect('/login');
+      return;
+    }
+    const post = await Post.findById(req.params.postId);
+    if (!post) {
+      req.flash("Error", { message: "Post not found", timeout: 5000 });
+      return;
+    }
+    if (post.OwnerID.toString() !== currentUser.id.toString()) {
+      req.flash("Error", { message: "You are not authorized to edit this post", timeout: 5000 });
+      return;
+    }
+    const { Model, Condition, Price, Description, Location } = req.body;
+    const Img = req.file ? req.file.filename : post.Img;
+    await Post.findByIdAndUpdate(req.params.postId, {
+      Model,
+      Img,
+      Condition,
+      Price,
+      Description,
+      Location,
+    });
+    req.flash("Success", { message: "Post updated successfully!", timeout: 5000 });
+    res.redirect('/home');
+
+  } catch (error) {
+    console.error('Error updating post:', error);
+    req.flash("Error", { message: "Internal Server Error", timeout: 5000 });
+  }
+});
+
 app.listen(port, function(){
     console.log('Running server on port '+port);
 });
