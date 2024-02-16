@@ -559,7 +559,9 @@ app.get('/post/:pid', async function (req, res) {
       res.status(404).send('Post not found');
       return;
     }
-    res.render(path.join(__dirname, './website/templates/postview.ejs'), { post:post ,user: user });
+    var rented = await Notification.find({Post : postId}).where("this.Users.Renter == currentuser.id" )
+    console.log(rented)
+    res.render(path.join(__dirname, './website/templates/postview.ejs'), { post:post ,user: user, isRented: rented.length>0? true : false  });
   } catch (error) {
     console.error(error);
     res.status(500).send('Internal Server Error');
