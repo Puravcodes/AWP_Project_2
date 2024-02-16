@@ -832,7 +832,7 @@ app.get("/api/get-notifications", async function(req, res){
     }
     console.log(UserNotifications);
 
-    res.send({"Status" : "0", "Notifications" : UserNotifications})
+    res.send({"Status" : "0","Msg" : "Notifications Sent","Notifications" : UserNotifications})
     return ;
   }catch(e){
     console.log(e);
@@ -840,6 +840,32 @@ app.get("/api/get-notifications", async function(req, res){
   }
 
 })
+
+app.get("/api/dismiss/:NID",async function(req, res){
+  try{
+    if (req.cookies.auth==null||req.cookies.auth==undefined){
+      res.send({"Status" : "1", "Msg": "Error User Not Authenticated"});
+      return;
+    }
+
+    CurrentUser = await User.find({Cookie : req.cookies.auth})
+    if (CurrentUser == []){
+      res.send({"Status" : "1", "Msg": "Error User Not Authenticated"});
+      return ;
+    }
+    CurrentUser = CurrentUser[0];
+
+    CurrentNotification = await Notification.findOneAndUpdate({_id : req.params.NID},{Status : false});
+    res.send({"Status" : "0","Msg":"Notification Dissmissed"})
+    return;
+  }catch(e){
+    console.log(e);
+    res.send({"Status" : "1", "Msg": "Error Occured While Processing the Request"});
+      return ;
+  }
+  
+})
+
 
 app.listen(port, function(){
     console.log('Running server on port '+port);
