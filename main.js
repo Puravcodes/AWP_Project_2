@@ -288,7 +288,10 @@ app.get('/profile', async function (req,res){
 
 app.post('/profile', upload.single('image'), async function (req,res){
   try{
-    
+    if (req.cookies.auth==null||req.cookies.auth==undefined){
+      res.redirect('/login');
+      return;
+    }
     var requser = await User.find({Cookie : req.cookies.auth});
     var currentuser = requser[0];
     var user = ({
@@ -839,7 +842,11 @@ app.get("/api/get-notifications", async function(req, res){
     res.send({"Status": "1", "Msg":"Error Occured"})
   }
 
-})
+});
+
+app.all('*', (req, res) => {
+  res.status(404).render(path.join(__dirname,'./website/templates/errorpage.ejs'));
+});
 
 app.get("/api/dismiss/:NID",async function(req, res){
   try{

@@ -172,7 +172,7 @@
                           </div>  
                           <div class="card-body">
                             <h5 class="card-title"><%= post[i].Model %></h5>
-                            <p class="card-subtitle"><b>Price: </b><%= post[i].Price %>/-</p>
+                            <p class="card-subtitle"><b>Price: </b><%= post[i].Price %>/wk</p>
                             <p class="card-text"><b>Condition :</b> <%= post[i].Condition %></p>
                             <p class="card-text"><b>Posted : </b><%= post[i].Date %> days ago...</p>
                             <div class="card-footer text-muted"  style="text-align: center;">
@@ -195,6 +195,9 @@
     <div class="copyright">
       &copy; Copyright <strong><span>Renter</span></strong>. All Rights Reserved
     </div>
+    <div class="disclaimer">
+      <p><em>Please Note: All prices mentioned for cycle renting are per week</em></p>
+  </div>
     <div class="credits">
       <!-- All the links in the footer should remain intact. -->
       <!-- You can delete the links only if you purchased the pro version. -->
@@ -217,7 +220,12 @@
             max-height: 200px; /* Set the maximum height as needed */
             object-fit: cover;
         }
-
+        .disclaimer {
+    text-align: center;
+    margin-top: 20px;
+    font-style: italic;
+    color: grey /* Adjust the color as per your design */
+}
   </style>
   <!-- Vendor JS Files -->
   <script src="assets/vendor/apexcharts/apexcharts.min.js"></script>
