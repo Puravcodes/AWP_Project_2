@@ -443,7 +443,7 @@ app.post('/api/rent-request/:PID',async function(req,res){
     })
     try{
       await notification1.save();
-      await User.findOneAndUpdate({id: CurrentPost.OwnerID}, {$push:{Notifications: notification1.id}})
+      await User.findOneAndUpdate({_id: CurrentPost.OwnerID}, {$push:{Notifications: notification1.id}})
     }catch(e){
       console.log(e);
       res.send({"Status":1,"Msg":"Error Occured While Processing"})
@@ -760,11 +760,11 @@ app.get("/api/rent-denial/:NID", async function (req, res){
     }
 
     CurrentUser = await User.find({Cookie : req.cookies.auth})
-    if (CurrentUser = []){
+    if (CurrentUser == []){
       res.send({"Status" : "1", "Msg": "Error User Not Authenticated"});
       return ;
     }
-
+    CurrentUser = CurrentUser[0];
     CurrentNotification = await Notification.findById(req.params.NID);
     await Notification.findOneAndUpdate({_id : req.params.NID},{
       Status : false,
@@ -795,7 +795,51 @@ app.get("/api/rent-denial/:NID", async function (req, res){
   }
 })
 
+app.get("/api/get-notifications", async function(req, res){
 
+  try{
+
+    if (req.cookies.auth==null||req.cookies.auth==undefined){
+      res.send({"Status" : "1", "Msg": "Error User Not Authenticated"});
+      return;
+    }
+
+    CurrentUser = await User.find({Cookie : req.cookies.auth})
+    if (CurrentUser == []){
+      res.send({"Status" : "1", "Msg": "Error User Not Authenticated"});
+      return ;
+    }
+    CurrentUser = CurrentUser[0];
+    UserNotifications = [];
+    if (CurrentUser.Notifications.length == 0){
+      res.send({"Status" : "2", "Msg" : "No Notifications Available"})
+      return ;
+    }
+     
+    for(i=0;i<CurrentUser.Notifications.length;i=i+1)
+    {
+      Notifi = await Notification.findById(CurrentUser.Notifications[i]);
+      if (Notifi != null && Notifi.Status == true){
+        UserNotifications.push(Notifi);
+      }else {
+        console.log("pass")
+      }
+    }
+    console.log(UserNotifications)
+    if(UserNotifications.length == 0){
+      res.send({"Status" : "2", "Msg" : "No Notifications Available"})
+      return ;
+    }
+    console.log(UserNotifications);
+
+    res.send({"Status" : "0", "Notifications" : UserNotifications})
+    return ;
+  }catch(e){
+    console.log(e);
+    res.send({"Status": "1", "Msg":"Error Occured"})
+  }
+
+})
 
 app.listen(port, function(){
     console.log('Running server on port '+port);
