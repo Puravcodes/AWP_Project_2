@@ -244,7 +244,6 @@ app.get('/profile', async function (req,res){
     var currentuser = requser[0];
 
     var postid = currentuser.Posts;
-    console.log(postid);
 
     var postlist = [];
     for (let i = 0; i < postid.length; i++) { 
@@ -268,6 +267,7 @@ app.get('/profile', async function (req,res){
         postlist.push(newobj); 
       }
     }
+
     var user = ({
       Username: currentuser.Username,
       Email: currentuser.Email,
@@ -344,6 +344,7 @@ app.post('/profile', upload.single('image'), async function (req,res){
     PhoneNumber : phone,
     Email : email
   });
+  req.flash("success", "Profile Edited Successfully");
   res.redirect('/profile');
   }catch(error){
     req.flash("error", error.message);
@@ -367,13 +368,9 @@ app.get('/profileview/:uid', async function (req,res){
       });
 
     var userID = req.params.uid;
-    console.log('-----------');
-    console.log(userID);
-    console.log('-----------');
     var Leaser = await User.findById(userID);
 
     var postid = Leaser.Posts;
-    console.log(postid);
 
     var postlist = [];
     for (let i = 0; i < postid.length; i++) { 
@@ -415,7 +412,7 @@ app.get('/profileview/:uid', async function (req,res){
 app.post('/api/rent-request/:PID',async function(req,res){
 
   var PostId = req.params.PID
-  Users = await User.find({Cookie: req.cookies.auth})
+  var Users = await User.find({Cookie: req.cookies.auth})
   console.log()
   console.log(PostId);
   if (req.cookies.auth == undefined || Users == []){
@@ -435,14 +432,14 @@ app.post('/api/rent-request/:PID',async function(req,res){
   
     var notification1 = new Notification({
       Title : "Request To Rent " + CurrentPost.Model,
-      Description : " A User Wants To Rent Your Cycle.",
+      Description : CurrentUser.Username +" wants To Rent Your Cycle.",
       Status : true,
       ApprovalNeeded : true,
       Users : {
         Leaser : CurrentPost.OwnerID,
-        Renter : CurrentUser.id
+        Renter : CurrentUser._id
       },
-      Post : CurrentPost.id
+      Post : CurrentPost._id
     })
     try{
       await notification1.save();
@@ -709,7 +706,7 @@ app.post('/search', async (req,res) => {
 app.get("/api/rent-approval/:NID", async function (req, res){
   try{
 
-    if (req.cookies.auth==null||req.cookies.auth==undefined){
+    if (req.cookies.auth===null||req.cookies.auth===undefined){
       res.send({"Status" : "1", "Msg": "Error User Not Authenticated"});
       return;
     }
@@ -726,10 +723,18 @@ app.get("/api/rent-approval/:NID", async function (req, res){
       ApprovalNeeded : false,
       Approved : "Success",
     });
+    
+    LeaserID = CurrentNotification.Users.Leaser;
+    Leaser = await User.findById(LeaserID);
+    LeaserUsername = Leaser.Username; 
+
+    PostID = CurrentNotification.Post;
+    curPost = await Post.findById(PostID);
+    Model = curPost.Model;
 
     NewNotification = new Notification({
-      Title : "Rent Request Approved by Leaser",
-      Description : "Unavailable",
+      Title : "Rent Request Approved by "+ LeaserUsername,
+      Description : Model,
       Status : true,
       ApprovalNeeded : false,
       Users : {
@@ -739,9 +744,8 @@ app.get("/api/rent-approval/:NID", async function (req, res){
       Post : CurrentNotification.Post
     });
 
-    //await NewNotification.save();
+    await NewNotification.save();
     renter = CurrentNotification.Users.Renter
-    console.log(renter)
     newnoti = NewNotification.id
     oldnoti = CurrentNotification.Post
     await User.findOneAndUpdate({_id : renter},{$push : {Notifications : newnoti}});
@@ -759,7 +763,7 @@ app.get("/api/rent-approval/:NID", async function (req, res){
 app.get("/api/rent-denial/:NID", async function (req, res){
   try{
 
-    if (req.cookies.auth==null||req.cookies.auth==undefined){
+    if (req.cookies.auth===null||req.cookies.auth===undefined){
       res.send({"Status" : "1", "Msg": "Error User Not Authenticated"});
       return;
     }
@@ -777,9 +781,16 @@ app.get("/api/rent-denial/:NID", async function (req, res){
       Approved : "Denied",
     });
 
-    NewNotification = new Notification({
-      Title : "Rent Request Denied by Leaser",
-      Description : "Unavailable",
+    var notif = await User.findById(CurrentUser.Users.Leaser);
+    var LeaserName = notif.Username;
+
+    PostID = CurrentNotification.Post;
+    curPost = await Post.findById(PostID);
+    Model = curPost.Model;
+
+    var NewNotification = new Notification({
+      Title : "Rent Request Denied by "+ LeaserName,
+      Description : Model,
       Status : true,
       ApprovalNeeded : false,
       Users : {
@@ -791,7 +802,7 @@ app.get("/api/rent-denial/:NID", async function (req, res){
 
     await NewNotification.save();
     await User.findOneAndUpdate({_id :CurrentNotification.Users.Renter},{$push : {Notifications : NewNotification.id}});
-    res.send({"Status": "0", "Msg" : "Rent Denied Succesfully"})
+    res.send({"Status": "0", "Msg" : "Rent Denied"})
 
   }catch(e){
     console.log(e);
