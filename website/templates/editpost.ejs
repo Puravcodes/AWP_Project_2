@@ -36,7 +36,24 @@
   <style type="text/css" id="operaUserStyle"></style><style type="text/css"></style>
 
   <script>
-    function approval(id) {
+    function deletePost(PID) {
+  fetch(`/post/${PID}`, {
+    method: 'DELETE'
+  })
+  .then(response => {
+    if (response.ok) {
+      console.log('Post deleted successfully');
+      location.reload('/profile');
+    } else {
+      console.error('Failed to delete post');
+    }
+  })
+  .catch(error => {
+    console.error('Error deleting post:', error);
+  });
+};
+
+function approval(id) {
     var aprv = new XMLHttpRequest();
     aprv.open("GET", "/api/rent-approval/" + id);
     aprv.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
@@ -66,18 +83,18 @@ function denial(id) {
     deny.send();
 }
 
-function dismiss(NID){
-  var dismiss = new XMLHttpRequest();
-  dismiss.open("GET", "/api/dismiss/" + NID);
-  dismiss.onreadystatechange = function(){
-    if (dismiss.readyState != 4) {
+function dismiss(id){
+  var dismis = new XMLHttpRequest();
+  dismis.open("GET", "/api/dismiss/" + id);
+  dismis.onreadystatechange = function(){
+    if (dismis.readyState != 4) {
       console.log("loading");
     } else {
-      var res = JSON.parse(dismiss.responseText);
+      var res = JSON.parse(dismis.responseText);
       alert(res.Msg);
     }
   };
-  dismiss.send();
+  dismis.send();
 }
 
 
@@ -119,24 +136,24 @@ function displayNotifications() {
     badgeNumber.textContent = notifi.length;
 
     dropdownHeader.textContent = "You have " + notifi.length + " new notification(s)";
-    
     notificationDiv.innerHTML = "";
 
     notifi.forEach(function(notification) {
-        var hr = document.createElement("hr");
-
-        var listItem = document.createElement("li");
-        listItem.className = "message-item";
-        listItem.style.paddingBottom = 0;
-
-        var div = document.createElement("div");
-
-        if (notification.ApprovalNeeded === true) {
-            var titleLink = document.createElement("a");
-            titleLink.href = "/post/" + notification.PID;
-            var title = document.createElement("h4");
-            title.textContent = notification.Title;
-            title.style.color = "blue";
+      var hr = document.createElement("hr");
+      
+      var listItem = document.createElement("li");
+      listItem.className = "message-item";
+      listItem.id = "message-item";
+      listItem.style.paddingBottom = 0;
+      
+      var div = document.createElement("div");
+      
+      if (notification.ApprovalNeeded === true) {
+        var titleLink = document.createElement("a");
+        titleLink.href = "/post/" + notification.PID;
+        var title = document.createElement("h4");
+        title.textContent = notification.Title;
+        title.style.color = "blue";
             titleLink.appendChild(title);
             div.appendChild(titleLink);
 
@@ -160,10 +177,10 @@ function displayNotifications() {
             approveButton.style.textAlign = "center";
             approveButton.style.marginRight = "1rem";
             approveButton.onclick = function() {
-                approval(notification.ID);
-                location.reload();
+              approval(notification.ID);
+              location.reload();
             };
-
+            
             var denyButton = document.createElement("button");
             denyButton.className = "col-1 btn btn-danger";
             denyButton.textContent = "Deny";
@@ -171,50 +188,48 @@ function displayNotifications() {
             denyButton.style.height = "2rem";
             denyButton.style.textAlign = "center";
             denyButton.onclick = function() {
-                denial(notification.ID);
-                location.reload();
+              denial(notification.ID);
+              location.reload();
             };
-
+            
             approvalDiv.appendChild(approveButton);
             approvalDiv.appendChild(denyButton);
             div.appendChild(approvalDiv);
-        } else if (notification.ApprovalNeeded === false) {
-          var titleLink = document.createElement("a");
+          } else if (notification.ApprovalNeeded === false) {
+            var titleLink = document.createElement("a");
             titleLink.href = "/profileview/" + notification.LeaserID;
             var title = document.createElement("h4");
             title.textContent = notification.Title;
             title.style.color = "blue";
             titleLink.appendChild(title);
             div.appendChild(titleLink);
-
+            
             var descLink = document.createElement("a");
             descLink.href = "/post/" + notification.PID;
             var desc = document.createElement("p");
             desc.textContent = notification.Description;
             descLink.appendChild(desc);
             div.appendChild(descLink);
-
+            
             var dismissDiv = document.createElement("div");
             dismissDiv.className = "row";
             dismissDiv.id = "Dismiss";
             dismissDiv.style.marginLeft = "2rem";
-
+            
+            var NID=notification.ID;
             var dismissButton = document.createElement("button");
             dismissButton.className = "col-1 btn btn-danger";
             dismissButton.textContent = "Dismiss X";
             dismissButton.style.width = "7rem";
             dismissButton.style.height = "2rem";
             dismissButton.style.textAlign = "center";
-            dismissButton.style.marginRight = "1rem";
-            dismissButton.onclick = function() {
-                var NID = notification.ID;
-                dismiss(NID);
-                location.reload();
+            dismissButton.style.marginLeft = "5rem";
+            dismissButton.onclick = async function() {
+              await dismiss(NID);
             };
 
             dismissDiv.appendChild(dismissButton);
             div.appendChild(dismissDiv);
-          
         }
 
         listItem.appendChild(hr);
