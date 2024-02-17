@@ -781,7 +781,7 @@ app.get("/api/rent-denial/:NID", async function (req, res){
       Approved : "Denied",
     });
 
-    var notif = await User.findById(CurrentUser.Users.Leaser);
+    var notif = await User.findById(CurrentNotification.Users.Leaser);
     var LeaserName = notif.Username;
 
     PostID = CurrentNotification.Post;
@@ -857,9 +857,6 @@ app.get("/api/get-notifications", async function(req, res){
 
 });
 
-app.all('*', (req, res) => {
-  res.status(404).render(path.join(__dirname,'./website/templates/errorpage.ejs'));
-});
 
 app.get("/api/dismiss/:NID",async function(req, res){
   try{
@@ -886,6 +883,9 @@ app.get("/api/dismiss/:NID",async function(req, res){
   
 })
 
+app.all('*', (req, res) => {
+  res.status(404).render(path.join(__dirname,'./website/templates/errorpage.ejs'));
+});
 
 app.listen(port, function(){
     console.log('Running server on port '+port);
